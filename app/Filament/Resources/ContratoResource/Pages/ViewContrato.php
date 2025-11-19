@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\ContratoResource\Pages;
 
 use App\Filament\Resources\ContratoResource;
+use App\Models\Contrato;
 use Filament\Actions;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Enums\ActionSize;
@@ -33,5 +34,9 @@ class ViewContrato extends ViewRecord
             ->button(),
             Actions\EditAction::make(),
         ];
+    }
+    protected function resolveRecord($key): \Illuminate\Database\Eloquent\Model
+    {
+        return Contrato::findOrFail($key);
     }
 }

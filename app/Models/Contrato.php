@@ -52,9 +52,9 @@ class Contrato extends Model
         return $this->hasMany(Convenio::class, 'contrato_id', 'id');
     }
 
-    public function beneficiarios()
+    public function contratoPersonas()
     {
-        return $this->hasMany(Beneficiario::class, 'contrato_id', 'id');
+        return $this->hasMany(ContratoPersona::class, 'contrato_id', 'id');
     }
 
     public function cronograma()

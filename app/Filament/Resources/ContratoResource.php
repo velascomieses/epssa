@@ -6,6 +6,7 @@ use App\Filament\Resources\ContratoResource\Pages;
 use App\Filament\Resources\ContratoResource\RelationManagers;
 use App\Models\Categoria;
 use App\Models\Contrato;
+use App\Models\ContratoPersona;
 use App\Models\Oficina;
 use App\Models\Persona;
 use App\Models\Producto;
@@ -31,7 +32,7 @@ use Awcodes\TableRepeater\Header;
 use Closure;
 class ContratoResource extends Resource
 {
-    protected static ?string $model = Contrato::class;
+    protected static ?string $model = ContratoPersona::class;
 
     protected static ?string $navigationIcon = 'heroicon-o-document';
 
@@ -166,11 +167,11 @@ class ContratoResource extends Resource
 //                            ->columnSpan(3),
                     ])
                     ->columns(3),
-                TableRepeater::make('beneficiarios')
+                TableRepeater::make('contratoPersonas')
                     ->headers([
                         Header::make('persona_id')->label('Persona')->width('140px'),
                     ])
-                    ->relationship('beneficiarios') // Define la relación
+                    ->relationship('contratoPersonas') // Define la relación
                     ->schema([
                         Select::make('persona_id')
                             ->searchable()
@@ -279,16 +280,26 @@ class ContratoResource extends Resource
     {
         return $table
             ->columns([
-                TextColumn::make('id')->searchable()->label('ID'),
-                TextColumn::make('fecha_contrato')->label('Fecha')->date('d/m/Y'),
-                TextColumn::make('tipo_contrato')->label('Tipo')
-                    ->formatStateUsing(fn ($record) => $record->tipoContrato?->nombre),
-                TextColumn::make('titular_id')->label('Titular')
-                    ->searchable()->formatStateUsing(fn ($record) => $record->titular ? $record->titular->nombre . ' ' . $record->titular->primer_apellido . ' ' . $record->titular->segundo_apellido : 'N/A'),
-                TextColumn::make('estado_id')->label('Estado')
-                    ->formatStateUsing(fn ($record) => $record->estado?->nombre )
+                TextColumn::make('contrato_id')->searchable()->label('ID'),
+                TextColumn::make('contrato.fecha_contrato')->label('Fecha')->date('d/m/Y'),
+                TextColumn::make('contrato.tipo_contrato_id')->label('Tipo')
+                    ->formatStateUsing(fn ($record) => $record->contrato->tipoContrato?->nombre),
+                TextColumn::make('persona.nombre')
+                    ->label('Nombres y Apellidos')
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereHas('persona', function ($query) use ($search) {
+                            $query->whereRaw("CONCAT(nombre, ' ', primer_apellido, ' ', segundo_apellido) LIKE ?", ["%{$search}%"])
+                                ->orWhere('numero_documento', "$search")
+                                ->orWhere('direccion', 'like', "%{$search}%");
+                        });
+                    })
+                    ->formatStateUsing(function ($record) {
+                        return $record->persona->full_name;
+                    }),
+                TextColumn::make('contrato.estado_id')->label('Estado')
+                    ->formatStateUsing(fn ($record) => $record->contrato->estado?->nombre )
                     ->badge()
-                    ->color(fn ($record): string => match ($record->estado_id) {
+                    ->color(fn ($record): string => match ($record->contrato->estado?->id) {
                         1 => 'success', // Vigente
                         2 => 'gray',    // Cancelado
                         3 => 'warning',  // Anulado
@@ -297,17 +308,17 @@ class ContratoResource extends Resource
                     }),
             ])
             ->filters([
-                SelectFilter::make('oficina_id')
-                    ->label('Oficina')->relationship('oficina', 'nombre'),
-                SelectFilter::make('tipo_contrato_id')
-                    ->label('Tipo de Contrato')->relationship('tipoContrato', 'nombre'),
-                SelectFilter::make('estado_id')
-                    ->label('Estado')->relationship('estado', 'nombre'),
+                SelectFilter::make('rol_id')
+                    ->label('Rol')
+                    ->relationship('rol', 'nombre')
+                    ->default(1)
+                    ->preload(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
                 Tables\Actions\EditAction::make(),
             ])
+            ->defaultSort('contrato_id', 'desc')
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
