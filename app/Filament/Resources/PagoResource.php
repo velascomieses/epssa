@@ -97,11 +97,11 @@ class PagoResource extends Resource
                             ->toArray();
                     })
                     ->getOptionLabelUsing(function ($value) {
-                        $itemPersona = ContratoPersona::where('contrato_id', $value)
+                        $contratoPersona = ContratoPersona::where('contrato_id', $value)
                             ->where('rol_id', 1)
                             ->with('persona')
                             ->first();
-                        return $itemPersona ? "{$itemPersona->solicitud_id} - {$itemPersona->persona->full_name}" : null;
+                        return $contratoPersona ? "{$contratoPersona->contrato_id} - {$contratoPersona->persona->full_name}" : null;
                     })
                     ->searchable()
                     ->live()
@@ -153,7 +153,7 @@ class PagoResource extends Resource
                     ->relationship('oficina', 'nombre')
                     ->preload()
                     ->required(),
-                TextInput::make('num_recibo')
+                TextInput::make('recibo')
                     ->label('N° Recibo')
                     ->rules(['required', 'string'])
                     ->validationMessages([
@@ -163,13 +163,19 @@ class PagoResource extends Resource
                 Select::make('tipo_comprobante_id')
                     ->label('Tipo de comprobante')
                     ->options(TipoComprobante::all()->pluck('nombre', 'id')),
-                TextInput::make('num_comprobante')
+                TextInput::make('serie_numero')
                     ->label('N° Comprobante')
                     ->rules(['string'])
                     ->validationMessages([
                         'max' => 'El número de recibo no puede exceder los 50 caracteres.',
                     ])
                     ->requiredWith('tipo_comprobante_id'),
+                Select::make('medio_pago_id')
+                    ->label('Medio pago')
+                    ->searchable()
+                    ->relationship('medioPago', 'nombre')
+                    ->preload()
+                    ->required(),
                 TextInput::make('importe')
                     ->label('Importe')
                     ->required()
@@ -203,13 +209,13 @@ class PagoResource extends Resource
                     ->label('Total del cronograma')
                     ->disabled()
                     ->required(),
-                TextInput::make('nota')
-                    ->label('Nota')
+                TextInput::make('referencia')
+                    ->label('Referencia')
                     ->maxLength(255)
                     ->rules(['nullable', 'string'])
                     ->columnSpan('full')
                     ->validationMessages([
-                        'max' => 'La nota no puede exceder los 250 caracteres.',
+                        'max' => 'La referencia no puede exceder los 250 caracteres.',
                     ]),
                 TableRepeater::make('cronograma_actual')
                     ->headers([
@@ -264,14 +270,25 @@ class PagoResource extends Resource
                 TextColumn::make('fecha_emision')->label('Fecha')->date('d/m/Y'),
                 TextColumn::make('importe')->label('Importe'),
                 TextColumn::make('contrato_id')->label('Contrato'),
-                TextColumn::make('contrato.titular_id')->label('Titular')
-                    ->formatStateUsing(fn ($record) => $record->contrato?->titular?->full_name),
+                TextColumn::make('contrato.rolTitular.id')->label('Titular')
+                    ->formatStateUsing(fn ($record) => $record->contrato?->rolTitular?->full_name)
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereHas('contrato.rolTitular', function ($query) use ($search) {
+                            $query->whereRaw("CONCAT(nombre, ' ', primer_apellido, ' ', segundo_apellido) LIKE ?", ["%{$search}%"])
+                                ->orWhere('numero_documento', $search);
+                        });
+                    }),
                 IconColumn::make('estado')
                     ->boolean()
                     ->trueIcon('heroicon-o-x-circle')
                     ->falseIcon('heroicon-o-check-circle')
                     ->trueColor('danger')
                     ->falseColor('success'),
+                IconColumn::make('referencia')
+                    ->label('Referencia')
+                    ->icon('heroicon-o-chat-bubble-left')
+                    ->tooltip(fn($record) => $record->referencia)
+                    ->color('success'),
             ])
             ->filters([
                 SelectFilter::make('estado')
@@ -283,14 +300,14 @@ class PagoResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                //Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->defaultSort('id', 'desc')
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+//                Tables\Actions\BulkActionGroup::make([
+//                    Tables\Actions\DeleteBulkAction::make(),
+//                ]),
             ]);
     }
 

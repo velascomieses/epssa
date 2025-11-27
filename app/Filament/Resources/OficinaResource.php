@@ -29,10 +29,7 @@ class OficinaResource extends Resource
             ->schema([
                 Forms\Components\TextInput::make('nombre')
                     ->maxLength(255)
-                    ->default(null),
-                Forms\Components\TextInput::make('serie_recibo')
-                    ->maxLength(255)
-                    ->default(null),
+                    ->default(null)
             ]);
     }
 
@@ -41,8 +38,6 @@ class OficinaResource extends Resource
         return $table
             ->columns([
                 Tables\Columns\TextColumn::make('nombre')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('serie_recibo')
                     ->searchable(),
             ])
             ->filters([
@@ -53,9 +48,9 @@ class OficinaResource extends Resource
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+//                Tables\Actions\BulkActionGroup::make([
+//                    Tables\Actions\DeleteBulkAction::make(),
+//                ]),
             ]);
     }
 

@@ -5,11 +5,15 @@ DROP TABLE auth_user_groups;
 DROP TABLE auth_group;
 DROP TABLE auth_user_user_permissions;
 DROP TABLE auth_permission;
-DROP TABLE auth_user;
 DROP TABLE django_admin_log;
 DROP TABLE django_migrations;
 DROP TABLE django_session;
 DROP TABLE django_content_type;
+ALTER TABLE `personal` 
+DROP FOREIGN KEY `fk_personal_user_id`;
+ALTER TABLE `personal` 
+DROP INDEX `fk_personal_user_id_idx` ;
+DROP TABLE auth_user;
 RENAME TABLE beneficiario  TO contrato_persona;
 ALTER TABLE contrato_persona CHANGE rol_id rol_id INT(11);
 ALTER TABLE rol CHANGE rol_id id INT(11);

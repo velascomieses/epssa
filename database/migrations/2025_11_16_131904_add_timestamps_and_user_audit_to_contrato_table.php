@@ -13,7 +13,8 @@ return new class extends Migration
     {
         Schema::table('contrato', function (Blueprint $table) {
             $table->timestamps();
-            $table->foreignId('user_audit_id')->nullable()
+            $table->foreignId('user_audit_id')
+                ->nullable()
                 ->constrained('users')
                 ->restrictOnDelete();
         });

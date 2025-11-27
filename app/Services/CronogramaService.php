@@ -62,7 +62,7 @@ class CronogramaService
 
                 if ($ini > 0 && $obj->excluir_inicial != 1):
                     $stmt = $conn->prepare($sql);
-                    $stmt->bindValue(1, $obj->contrato_id, \PDO::PARAM_INT);
+                    $stmt->bindValue(1, $obj->id, \PDO::PARAM_INT);
                     $stmt->bindValue(2, 0, \PDO::PARAM_INT);
                     $stmt->bindValue(3, $fini->format('Y-m-d'), \PDO::PARAM_STR);
                     $stmt->bindValue(4, $fini->format('Y-m-d'), \PDO::PARAM_STR);
@@ -85,7 +85,7 @@ class CronogramaService
 
                     if ($c == $Nc):
 
-                        $stmt->bindValue(1, $obj->contrato_id, \PDO::PARAM_INT);
+                        $stmt->bindValue(1, $obj->id, \PDO::PARAM_INT);
                         $stmt->bindValue(2, $c, \PDO::PARAM_INT);
                         $stmt->bindValue(3, $f1->format('Y-m-d'), \PDO::PARAM_STR);
                         $stmt->bindValue(4, $f2->format('Y-m-d'), \PDO::PARAM_STR);
@@ -96,7 +96,7 @@ class CronogramaService
 
                     else:
 
-                        $stmt->bindValue(1, $obj->contrato_id, \PDO::PARAM_INT);
+                        $stmt->bindValue(1, $obj->id, \PDO::PARAM_INT);
                         $stmt->bindValue(2, $c, \PDO::PARAM_INT);
                         $stmt->bindValue(3, $f1->format('Y-m-d'), \PDO::PARAM_STR);
                         $stmt->bindValue(4, $f2->format('Y-m-d'), \PDO::PARAM_STR);

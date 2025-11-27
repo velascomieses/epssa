@@ -11,6 +11,8 @@ class Pago extends Model
 
     protected $fillable = [
         'fecha_emision',
+        'fecha_calculo',
+        'moneda_id',
         'contrato_id',
         'oficina_id',
         'recibo',
@@ -18,6 +20,10 @@ class Pago extends Model
         'serie_numero',
         'producto_id',
         'importe',
+        'estado',
+        'referencia',
+        'tipo_ingreso',
+        'user_audit_id'
     ];
 
     public function contrato() {
@@ -28,4 +34,8 @@ class Pago extends Model
         return $this->belongsTo(Oficina::class, 'oficina_id', 'id');
     }
 
+    public function medioPago()
+    {
+        return $this->belongsTo(MedioPago::class, 'medio_pago_id', 'id');
+    }
 }

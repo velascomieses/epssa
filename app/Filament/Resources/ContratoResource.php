@@ -10,6 +10,7 @@ use App\Models\ContratoPersona;
 use App\Models\Oficina;
 use App\Models\Persona;
 use App\Models\Producto;
+use App\Models\Rol;
 use App\Models\TipoContrato;
 use Awcodes\TableRepeater\Components\TableRepeater;
 use Filament\Forms;
@@ -40,6 +41,15 @@ class ContratoResource extends Resource
 
     protected static ?int $navigationSort = 1;
 
+
+    public static function getNavigationLabel(): string
+    {
+        return 'Contratos';
+    }
+    public static function getBreadcrumb(): string
+    {
+        return 'Contratos';
+    }
 
     public static function form(Form $form): Form
     {
@@ -82,20 +92,6 @@ class ContratoResource extends Resource
                                 "{$record->full_name}" .
                                 (!$record->estado ? ' (Inactivo)' : '')
                             )
-                            ->preload()
-                            ->columnStart(1),
-                        Select::make('titular_id')
-                            ->relationship('titular', 'titular_id')
-                            ->label('Titular')
-                            ->searchable()
-                            ->getSearchResultsUsing(fn (string $search): array =>
-                            Persona::whereRaw("CONCAT_WS(' ', nombre, primer_apellido, segundo_apellido) LIKE ?", ["%{$search}%"])
-                                ->orWhere('numero_documento', 'like', "%{$search}%")
-                                ->get()
-                                ->mapWithKeys(fn ($persona) => [$persona->id => $persona->full_name])
-                                ->toArray()
-                            )
-                            ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->full_name}")
                             ->preload()
                     ])
                 ->columns(3),
@@ -170,6 +166,7 @@ class ContratoResource extends Resource
                 TableRepeater::make('contratoPersonas')
                     ->headers([
                         Header::make('persona_id')->label('Persona')->width('140px'),
+                        Header::make('rol_id')->label('Rol')->width('50px')
                     ])
                     ->relationship('contratoPersonas') // Define la relación
                     ->schema([
@@ -185,6 +182,10 @@ class ContratoResource extends Resource
                             ->getOptionLabelUsing(fn ($value): ?string => Persona::find($value)?->full_name)
                             ->label('Persona')
                             ->required(),
+                        Select::make('rol_id')
+                            ->label('Rol')
+                            ->options(Rol::all()->pluck('nombre', 'id'))
+                            ->required()
                     ])
                     ->addActionLabel('Agregar Persona')
                     ->label('Personas')
@@ -193,7 +194,7 @@ class ContratoResource extends Resource
                     ->rules([
                         fn (): Closure => function (string $attribute, $value, Closure $fail) {
                             // $value es el array del repeater
-                            $titulares = collect($value)->filter(fn ($item) => $item['rol_persona_id'] == 1);
+                            $titulares = collect($value)->filter(fn ($item) => $item['rol_id'] == 1);
 
                             if ($titulares->count() === 0) {
                                 $fail('Debe haber al menos un titular.');
@@ -207,8 +208,7 @@ class ContratoResource extends Resource
                 TableRepeater::make('productos')
                     ->headers([
                         Header::make('producto_id')->label('Productos')->width('200px'),
-                        Header::make('cantidad')->label('importe')->width('150px'),
-                        Header::make('importe')->label('Importe')->width('100px'),
+                        Header::make('cantidad')->label('Cantidad')->width('150px')
                     ])
                     ->relationship('productos') // Define la relación
                     ->schema([
@@ -218,10 +218,6 @@ class ContratoResource extends Resource
                             ->searchable()
                             ->required(),
                         TextInput::make('cantidad')
-                            ->integer()
-                            ->label('Cantidad')
-                            ->required(),
-                        TextInput::make('importe')
                             ->rules([
                                 'required',
                                 'regex:/^\d+(\.\d{1,2})?$/', // hasta 2 decimales, punto como separador
@@ -257,22 +253,7 @@ class ContratoResource extends Resource
                     ])
                     ->addActionLabel('Agregar convenio')
                     ->label('Convenios')
-                    ->minItems(2)
                     ->columnSpan('full')
-                    ->rules([
-                        fn (): Closure => function (string $attribute, $value, Closure $fail) {
-                            // $value es el array del repeater
-                            $titulares = collect($value)->filter(fn ($item) => $item['rol_persona_id'] == 1);
-
-                            if ($titulares->count() === 0) {
-                                $fail('Debe haber al menos un titular.');
-                            }
-
-                            if ($titulares->count() > 1) {
-                                $fail('Solo puede haber un titular.');
-                            }
-                        },
-                    ]),
             ]);
     }
 
@@ -313,6 +294,11 @@ class ContratoResource extends Resource
                     ->relationship('rol', 'nombre')
                     ->default(1)
                     ->preload(),
+                SelectFilter::make('contrato.estado_id')
+                    ->label('Estado')
+                    ->multiple()
+                    ->relationship('contrato.estado', 'nombre')
+                    ->preload(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -341,5 +327,10 @@ class ContratoResource extends Resource
             'view' => Pages\ViewContrato::route('/{record}'),
             'edit' => Pages\EditContrato::route('/{record}/edit'),
         ];
+    }
+
+    public static function getSlug(): string
+    {
+        return 'contratos';
     }
 }

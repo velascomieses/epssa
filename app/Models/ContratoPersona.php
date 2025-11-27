@@ -3,11 +3,20 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\Concerns\HasUuids;
 class ContratoPersona extends Model
 {
+    use HasUuids;
+
     protected $table = 'contrato_persona';
-    protected $fillable = ['id', 'contrato_id', 'persona_id', 'rol_id'];
+
+    protected $fillable = ['id', 'rol_id', 'persona_id', 'contrato_id' ];
+
+    protected $primaryKey = 'id';
+    protected $keyType = 'string';
+    public $incrementing = false;
+    public $timestamps = false;
+
     public function contrato()
     {
         return $this->belongsTo(Contrato::class, 'contrato_id', 'id');

@@ -40,6 +40,8 @@ class OtroPagoResource extends Resource
 
     protected static ?string $navigationLabel = 'Otros pagos';
 
+    protected static ?int $navigationSort = 2;
+
     public static function form(Form $form): Form
     {
         return $form
@@ -78,63 +80,22 @@ class OtroPagoResource extends Resource
                             ->toArray();
                     })
                     ->getOptionLabelUsing(function ($value) {
-                        $itemPersona = ContratoPersona::where('contrato_id', $value)
+                        $contratoPersona = ContratoPersona::where('contrato_id', $value)
                             ->where('rol_id', 1)
                             ->with('persona')
                             ->first();
-                        return $itemPersona ? "{$itemPersona->solicitud_id} - {$itemPersona->persona->full_name}" : null;
+                        return $contratoPersona ? "{$contratoPersona->contrato_id} - {$contratoPersona->persona->full_name}" : null;
                     })
                     ->searchable()
                     ->live()
-                    ->required()
-                    ->afterStateUpdated(function (Get $get, Set $set, $state) {
-                        $set('cronograma_actual', null);
-                        $set('deuda_total', 0);
-                    })
-                    ->suffixAction(
-                        Action::make('getSchedule')
-                            ->icon('heroicon-o-arrow-path')
-                            ->action(function (Get $get, Set $set, $state) {
-                                $set('cronograma_actual', null);
-                                $set('deuda_total', 0);
-                                if ($state) {
-                                    $service = app(CronogramaService::class);
-                                    // Validar que la fecha_calculo no esté vacía
-                                    if (!$get('fecha_calculo')) {
-                                        Notification::make()
-                                            ->title('¡Advertencia!')
-                                            ->body('Debe seleccionar una fecha.')
-                                            ->warning()
-                                            ->send();
-                                        return;
-                                    }
-                                    // Validar que la fecha sea válida
-                                    try {
-                                        $fechaValidada = Carbon::parse($get('fecha_calculo'))->format('Y-m-d');
-                                    } catch (\Exception $e) {
-                                        Notification::make()
-                                            ->title('¡Error!')
-                                            ->body('La fecha seleccionada no es válida.')
-                                            ->danger()
-                                            ->send();
-                                        return;
-                                    }
-                                    $cronograma = $service->getCurrent($state, $fechaValidada);
-                                    if ($cronograma) {
-                                        $set('cronograma_actual', json_decode(json_encode($cronograma), true));
-                                        $total = collect($cronograma)->sum('total');
-                                        $set('deuda_total', sprintf("%.2f", $total));
-                                    }
-                                }
-                            })
-                    ),
+                    ->required(),
                 Select::make('oficina_id')
                     ->label('Oficina')
                     ->searchable()
                     ->relationship('oficina', 'nombre')
                     ->preload()
                     ->required(),
-                TextInput::make('num_recibo')
+                TextInput::make('recibo')
                     ->label('N° Recibo')
                     ->rules(['required', 'string'])
                     ->validationMessages([
@@ -144,7 +105,7 @@ class OtroPagoResource extends Resource
                 Select::make('tipo_comprobante_id')
                     ->label('Tipo de comprobante')
                     ->options(TipoComprobante::all()->pluck('nombre', 'id')),
-                TextInput::make('num_comprobante')
+                TextInput::make('serie_numero')
                     ->label('N° Comprobante')
                     ->rules(['string'])
                     ->validationMessages([
@@ -154,6 +115,13 @@ class OtroPagoResource extends Resource
                 Select::make('producto_id')
                     ->label('Producto')
                     ->options(Producto::all()->pluck('nombre', 'id'))
+                    ->searchable()
+                    ->required(),
+                Select::make('medio_pago_id')
+                    ->label('Medio pago')
+                    ->searchable()
+                    ->relationship('medioPago', 'nombre')
+                    ->preload()
                     ->required(),
                 TextInput::make('importe')
                     ->label('Importe')
@@ -168,13 +136,13 @@ class OtroPagoResource extends Resource
                         'regex' => 'El valor debe ser numérico con hasta 2 decimales.',
                         'gte' => 'El valor debe ser mayor o igual a cero.',
                     ]),
-                TextInput::make('nota')
-                    ->label('Nota')
+                TextInput::make('referencia')
+                    ->label('Referencia')
                     ->maxLength(255)
                     ->rules(['nullable', 'string'])
                     ->columnSpan('full')
                     ->validationMessages([
-                        'max' => 'La nota no puede exceder los 250 caracteres.',
+                        'max' => 'La referencia no puede exceder los 250 caracteres.',
                     ]),
             ]);
     }
@@ -188,14 +156,25 @@ class OtroPagoResource extends Resource
                 TextColumn::make('fecha_emision')->label('Fecha')->date('d/m/Y'),
                 TextColumn::make('importe')->label('Importe'),
                 TextColumn::make('contrato_id')->label('Contrato'),
-                TextColumn::make('contrato.titular_id')->label('Titular')
-                    ->formatStateUsing(fn ($record) => $record->contrato?->titular?->full_name),
+                TextColumn::make('contrato.rolTitular.id')->label('Titular')
+                    ->formatStateUsing(fn ($record) => $record->contrato?->rolTitular?->full_name)
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereHas('contrato.rolTitular', function ($query) use ($search) {
+                            $query->whereRaw("CONCAT(nombre, ' ', primer_apellido, ' ', segundo_apellido) LIKE ?", ["%{$search}%"])
+                                ->orWhere('numero_documento', $search);
+                        });
+                    }),
                 IconColumn::make('estado')
                     ->boolean()
                     ->trueIcon('heroicon-o-x-circle')
                     ->falseIcon('heroicon-o-check-circle')
                     ->trueColor('danger')
                     ->falseColor('success'),
+                IconColumn::make('referencia')
+                    ->label('Referencia')
+                    ->icon('heroicon-o-chat-bubble-left')
+                    ->tooltip(fn($record) => $record->referencia)
+                    ->color('success'),
             ])
             ->filters([
                 SelectFilter::make('estado')
@@ -207,14 +186,14 @@ class OtroPagoResource extends Resource
                     ]),
             ])
             ->actions([
-                Tables\Actions\EditAction::make(),
+                Tables\Actions\ViewAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->defaultSort('id', 'desc')
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+//                Tables\Actions\BulkActionGroup::make([
+//                    Tables\Actions\DeleteBulkAction::make(),
+//                ]),
             ]);
     }
 
@@ -228,6 +207,6 @@ class OtroPagoResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->where('tipo_ingreso', '=', 2);
+            ->where('tipo_ingreso', 2);
     }
 }

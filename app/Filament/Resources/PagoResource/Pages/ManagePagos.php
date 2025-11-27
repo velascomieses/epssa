@@ -33,14 +33,14 @@ class ManagePagos extends ManageRecords
                             $data['fecha_emision'], // fecha1
                             $data['fecha_calculo'],
                             1, // moneda_id
-                            $data['num_recibo'], // num_recibo
+                            $data['recibo'], // num_recibo
                             null, // personal_id
                             $data['importe'],
                             $data['tipo_comprobante_id'], // comprobante_id 3 RECIBO
                             null, // operacion 1 amortizacion 2 cancelacion 3 otro
                             $data['oficina_id'], // oficina_id
                             1, // tipo_ingreso 1 pago 2 otro pago
-                            $data['nota'], // referencia
+                            $data['referencia'], // referencia
                         ]);
                         // commit transaction
                         DB::commit();

@@ -8,15 +8,15 @@
     </tr>
     <tr>
         <td>TITULAR</td>
-        <td colspan="3">{{ $contrato->titular->full_name }}</td>
+        <td colspan="3">{{ $contrato->rolTitular->full_name }}</td>
     </tr>
     <tr>
         <td>DIRECCIÓN</td>
-        <td colspan="3">{{ $contrato->titular->direccion }} </td>
+        <td colspan="3">{{ $contrato->rolTitular->direccion }} </td>
     </tr>
     <tr>
         <td>TELÉFONO</td>
-        <td>{{ $contrato->titular->telefono }}</td>
+        <td>{{ $contrato->rolTitular->telefono }}</td>
         <td></td>
         <td></td>
     </tr>

@@ -10,7 +10,22 @@ class Contrato extends Model
     protected $table = 'contrato';
 
     protected $fillable = [
-        'id', 'tipo_contrato_id', 'fecha_contrato', 'numero_contrato', 'titular_id',
+        'id',
+        'tipo_contrato_id',
+        'fecha_contrato',
+        'numero_contrato',
+        'categoria_id',
+        'inicial',
+        'descuento',
+        'total',
+        'numero_cuotas',
+        'dia',
+        'fecha_vencimiento',
+        'tea',
+        'oficina_id',
+        'personal_id',
+        'fecha_atencion',
+        'titular_id',
     ];
 
     public function titular()
@@ -51,12 +66,21 @@ class Contrato extends Model
     {
         return $this->hasMany(Convenio::class, 'contrato_id', 'id');
     }
-
     public function contratoPersonas()
     {
         return $this->hasMany(ContratoPersona::class, 'contrato_id', 'id');
     }
-
+    public function rolTitular()
+    {
+        return $this->hasOneThrough(
+            Persona::class,
+            ContratoPersona::class,
+            'contrato_id', // Clave foránea en contrato_persona
+            'id',   // Clave primaria en persona
+            'id', // Clave local en contrato
+            'persona_id'    // Clave foránea en contrato_persona que conecta con persona
+        )->where('contrato_persona.rol_id', 1);
+    }
     public function cronograma()
     {
         return $this->hasMany(Cronograma::class, 'contrato_id', 'id');
