@@ -13,7 +13,18 @@ class Persona extends Model
         'nombre',
         'primer_apellido',
         'segundo_apellido',
-        'numero_documento'
+        'numero_documento',
+        'sexo',
+        'fecha_nacimiento',
+        'es_empresa',
+        'es_convenio',
+        'es_proveedor',
+        'direccion',
+        'telefono',
+        'correo_electronico',
+        'estado_civil_id',
+        'tipo_documento_identidad_id',
+        'ubigeo_id',
     ];
 
     public function getFullNameAttribute(): string

@@ -6,6 +6,7 @@ use App\Filament\Resources\PagoResource\Pages;
 use App\Filament\Resources\PagoResource\RelationManagers;
 use App\Models\ContratoPersona;
 //use App\Models\ItemPersona;
+use App\Models\DestinoPago;
 use App\Models\Pago;
 use App\Models\Personal;
 use App\Models\TipoComprobante;
@@ -15,6 +16,8 @@ use Awcodes\TableRepeater\Header;
 use Filament\Forms;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -301,6 +304,45 @@ class PagoResource extends Resource
             ])
             ->actions([
                 //Tables\Actions\EditAction::make(),
+                Tables\Actions\Action::make('updatePay')
+                    ->form([
+                        TextInput::make('numero_operacion')
+                            ->label('N° operación')
+                            ->required(),
+                        DateTimePicker::make('fecha_operacion')
+                            ->label('Fecha operación')
+                            ->required(),
+                        Select::make('destino_pago')
+                            ->label('Destino pago')
+                            ->options(DestinoPago::all()->pluck('nombre', 'id'))
+                            ->searchable()
+                            ->required(),
+                        FileUpload::make('voucher')
+                            ->label('Voucher')
+                            ->directory('pagos/vouchers')
+                            ->acceptedFileTypes(['image/*', 'application/pdf'])
+                            ->maxSize(2048)
+                            ->required()
+                            ->storeFiles(false),
+                    ])
+                    ->action(function (array $data, Pago $record): void {
+                        $record->numero_operacion = $data['numero_operacion'];
+                        $record->fecha_operacion = $data['fecha_operacion'];
+                        $record->destino_pago_id = $data['destino_pago'];
+                        $file = $data['voucher'];
+
+                        // Generar nombre personalizado
+                        $fileName = sprintf(
+                            'pago_%s_%s.%s',
+                            $record->id,
+                            now()->format('YmdHis'),
+                            $file->getClientOriginalExtension()
+                        );
+                        // Guardar con nombre personalizado
+                        $filePath = $file->storeAs('pagos/vouchers', $fileName, 'public');
+
+                        $record->save();
+                    }),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->defaultSort('id', 'desc')

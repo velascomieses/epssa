@@ -12,8 +12,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('pago', function (Blueprint $table) {
-            $table->foreignId('medio_pago_id')
-                ->nullable()->after('tipo_comprobante_id');
+            $table->foreignId('destino_pago_id')
+                ->nullable()->after('fecha_operacion');
         });
     }
 
@@ -23,8 +23,8 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('pago', function (Blueprint $table) {
-            $table->dropForeign(['medio_pago_id']);
-            $table->dropColumn('medio_pago_id');
+            $table->dropForeign(['destino_pago_id']);
+            $table->dropColumn('destino_pago_id');
         });
     }
 };

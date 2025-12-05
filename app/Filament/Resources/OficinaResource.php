@@ -6,9 +6,11 @@ use App\Filament\Resources\OficinaResource\Pages;
 use App\Filament\Resources\OficinaResource\RelationManagers;
 use App\Models\Oficina;
 use Filament\Forms;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -27,7 +29,7 @@ class OficinaResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('nombre')
+                TextInput::make('nombre')
                     ->maxLength(255)
                     ->default(null)
             ]);
@@ -37,7 +39,9 @@ class OficinaResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('nombre')
+                TextColumn::make('id')
+                    ->label('ID'),
+                TextColumn::make('nombre')
                     ->searchable(),
             ])
             ->filters([

@@ -4,14 +4,26 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\PersonaResource\Pages;
 use App\Filament\Resources\PersonaResource\RelationManagers;
+use App\Models\EstadoCivil;
 use App\Models\Persona;
+use App\Models\TipoDocumentoIdentidad;
+use App\Models\Ubigeo;
 use Filament\Forms;
+use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\Select;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
+use Filament\Forms\Get;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\QueryException;
+use Illuminate\Validation\Rules\Unique;
 
 class PersonaResource extends Resource
 {
@@ -27,43 +39,79 @@ class PersonaResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('nombre')
-                    ->maxLength(255)
+                Select::make('tipo_documento_identidad_id')
+                    ->label('Tipo de documento')
+                    ->options(TipoDocumentoIdentidad::all()->pluck('nombre', 'id'))
+                    ->searchable()
+                    ->required(),
+                TextInput::make('numero_documento')
+                    ->label('N° Documento')
+                    ->default(null)
+                    ->rules([
+                        'required',
+                        'max:15',
+                    ])
+                    ->unique(
+                        column: 'numero_documento',
+                        modifyRuleUsing: function (Unique $rule, Get $get){
+                            return $rule->where('tipo_documento_identidad_id', $get('tipo_documento_identidad_id'));
+                        },
+                        ignoreRecord: true
+                    ),
+                TextInput::make('primer_apellido')
+                    ->label('Primer apellido')
+                    ->maxLength(50)
+                    ->default(null)
+                    ->requiredIf('tipo_documento_identidad_id', '!=', 3),
+                TextInput::make('segundo_apellido')
+                    ->label('Segundo apellido')
+                    ->maxLength(50)
+                    ->default(null)
+                    ->requiredIf('tipo_documento_identidad_id', '!=', 3),
+                TextInput::make('nombre')
+                    ->maxLength(245)
+                    ->default(null)
+                    ->required(),
+                Select::make('sexo')
+                    ->label('Sexo')
+                    ->options([
+                        'F' => 'Femenino',
+                        'M' => 'Masculino',
+                    ])
+                    ->required(),
+                Select::make('estado_civil_id')
+                    ->label('Estado Civil')
+                    ->options(EstadoCivil::all()->pluck('nombre', 'id'))
+                    ->searchable(),
+                DatePicker::make('fecha_nacimiento'),
+                Select::make('ubigeo_id')
+                    ->label('Ubigeo')
+                    ->searchable()
+                    ->getSearchResultsUsing(function (string $search) {
+                        return Ubigeo::query()
+                            ->distritos()
+                            ->where('nombre', 'like', "%{$search}%")
+                            ->limit(50)
+                            ->get()
+                            ->mapWithKeys(fn ($record) => [
+                                $record->id => $record->full_name
+                            ]);
+                    })
+                    ->getOptionLabelUsing(fn ($value) => Ubigeo::find($value)?->full_name),
+                TextInput::make('direccion')
+                    ->maxLength(150)
                     ->default(null),
-                Forms\Components\TextInput::make('primer_apellido')
-                    ->maxLength(255)
-                    ->default(null),
-                Forms\Components\TextInput::make('segundo_apellido')
-                    ->maxLength(255)
-                    ->default(null),
-                Forms\Components\TextInput::make('sexo')
-                    ->maxLength(1)
-                    ->default(null),
-                Forms\Components\DatePicker::make('fecha_nacimiento'),
-                Forms\Components\Toggle::make('es_empresa'),
-                Forms\Components\Toggle::make('es_convenio'),
-                Forms\Components\TextInput::make('numero_documento')
-                    ->maxLength(255)
-                    ->default(null),
-                Forms\Components\TextInput::make('direccion')
-                    ->maxLength(255)
-                    ->default(null),
-                Forms\Components\TextInput::make('telefono')
+                TextInput::make('telefono')
                     ->tel()
-                    ->maxLength(255)
+                    ->maxLength(45)
                     ->default(null),
-                Forms\Components\TextInput::make('correo_electronico')
-                    ->maxLength(254)
+                TextInput::make('correo_electronico')
+                    ->maxLength(150)
                     ->default(null),
-                Forms\Components\TextInput::make('tipo_documento_identidad_id')
-                    ->maxLength(2)
-                    ->default(null),
-                Forms\Components\TextInput::make('tipo_via_id')
-                    ->maxLength(2)
-                    ->default(null),
-                Forms\Components\TextInput::make('ubigeo_id')
-                    ->maxLength(6)
-                    ->default(null),
+                Toggle::make('es_convenio')
+                    ->label('Convenio'),
+                Toggle::make('es_proveedor')
+                    ->label('Proveedor')
             ]);
     }
 
@@ -71,47 +119,65 @@ class PersonaResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('nombre')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('primer_apellido')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('segundo_apellido')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('sexo')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('fecha_nacimiento')
-                    ->date()
+                TextColumn::make('id')
+                    ->label('ID')
                     ->sortable(),
-                Tables\Columns\IconColumn::make('es_empresa')
-                    ->boolean(),
-                Tables\Columns\IconColumn::make('es_convenio')
-                    ->boolean(),
-                Tables\Columns\TextColumn::make('numero_documento')
+                TextColumn::make('nombre')
+                    ->label('Nombres y apellidos')
+                    ->formatStateUsing(fn ($record) => "{$record->full_name}")
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereRaw("CONCAT(nombre, ' ', primer_apellido, ' ', segundo_apellido) LIKE ?", ["%{$search}%"])
+                            ->orWhere('numero_documento',$search);
+                    }),
+                TextColumn::make('sexo')
+                    ->formatStateUsing(fn ($state) => $state === 'F' ? 'Mujer' : 'Hombre')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('direccion')
+                TextColumn::make('fecha_nacimiento')
+                    ->date('d/m/Y')
+                    ->sortable(),
+                TextColumn::make('numero_documento')
+                    ->label('N° Documento')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('telefono')
+                TextColumn::make('direccion')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('correo_electronico')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('tipo_documento_identidad_id')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('tipo_via_id')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('ubigeo_id')
-                    ->searchable(),
+                TextColumn::make('telefono')
+                    ->searchable()
             ])
             ->filters([
                 //
             ])
+            ->defaultSort('id', 'desc')
             ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\EditAction::make()
+                    ->mutateFormDataUsing(function (array $data): array {
+                        $data['user_audit_id'] = auth()->id();
+                        return $data;
+                    }),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Eliminar')
+                    ->icon('heroicon-o-trash')
+                    ->action(function ($record) {
+                        try {
+                            $record->delete();
+                            Notification::make()
+                                ->title('Registro eliminado con éxito.')
+                                ->success()
+                                ->send();
+                        } catch (QueryException $exception) {
+                            Notification::make()
+                                ->title('Error al eliminar.')
+                                ->body('No se puede eliminar este registro porque está relacionado con otros datos.')
+                                ->danger()
+                                ->send();
+                        }
+                    })
+                    ->requiresConfirmation()
+                    ->color('danger'),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+//                Tables\Actions\BulkActionGroup::make([
+//                    Tables\Actions\DeleteBulkAction::make(),
+//                ]),
             ]);
     }
 
