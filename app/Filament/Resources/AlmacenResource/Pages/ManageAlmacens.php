@@ -10,6 +10,7 @@ class ManageAlmacens extends ManageRecords
 {
     protected static string $resource = AlmacenResource::class;
 
+    protected static ?string $title = 'Almacenes';
     protected function getHeaderActions(): array
     {
         return [

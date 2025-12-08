@@ -31,6 +31,9 @@ class PortfolioUpdateService
 
             Contrato::where('estado_id', 1)
                 ->with(['cronograma'])
+                ->whereHas('contratoPersonas', function ($query) {
+                    $query->where('rol_id', 1);
+                })
                 ->chunk(100, function($contratos) use ($fechaHoy) {
                     $datos = [];
 

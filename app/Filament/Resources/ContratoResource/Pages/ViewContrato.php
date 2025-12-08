@@ -23,6 +23,11 @@ class ViewContrato extends ViewRecord
     {
         return [
             Actions\ActionGroup::make([
+                Actions\Action::make('verContrato')
+                    ->label('Contrato')
+                    ->url(fn ($record) => route('contratos.contrato', ['id' => $record->id]))
+                    ->icon('heroicon-o-document-text')
+                    ->openUrlInNewTab(),
                 Actions\Action::make('verCronograma')
                     ->label('Cronograma')
                     ->url(fn ($record) => route('contratos.rpt.cronograma', ['id' => $record->id]))

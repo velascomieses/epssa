@@ -38,4 +38,8 @@ class Pago extends Model
     {
         return $this->belongsTo(MedioPago::class, 'medio_pago_id', 'id');
     }
+    public function user()
+    {
+        return $this->belongsTo(User::class, 'user_audit_id', 'id');
+    }
 }

@@ -299,6 +299,11 @@ class ContratoResource extends Resource
                     ->multiple()
                     ->relationship('contrato.estado', 'nombre')
                     ->preload(),
+                SelectFilter::make('contrato.tipo_contrato_id')
+                    ->label('Tipo')
+                    ->multiple()
+                    ->relationship('contrato.tipoContrato', 'nombre')
+                    ->preload(),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
@@ -306,9 +311,9 @@ class ContratoResource extends Resource
             ])
             ->defaultSort('contrato_id', 'desc')
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+//                Tables\Actions\BulkActionGroup::make([
+//                    Tables\Actions\DeleteBulkAction::make(),
+//                ]),
             ]);
     }
 

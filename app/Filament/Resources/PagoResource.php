@@ -5,7 +5,6 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\PagoResource\Pages;
 use App\Filament\Resources\PagoResource\RelationManagers;
 use App\Models\ContratoPersona;
-//use App\Models\ItemPersona;
 use App\Models\DestinoPago;
 use App\Models\Pago;
 use App\Models\Personal;
@@ -292,6 +291,7 @@ class PagoResource extends Resource
                     ->icon('heroicon-o-chat-bubble-left')
                     ->tooltip(fn($record) => $record->referencia)
                     ->color('success'),
+
             ])
             ->filters([
                 SelectFilter::make('estado')
@@ -305,6 +305,9 @@ class PagoResource extends Resource
             ->actions([
                 //Tables\Actions\EditAction::make(),
                 Tables\Actions\Action::make('updatePay')
+                    ->icon('heroicon-o-information-circle')
+                    ->hiddenLabel(true)
+                    ->tooltip('Actualizar pago')
                     ->form([
                         TextInput::make('numero_operacion')
                             ->label('N° operación')
@@ -343,6 +346,13 @@ class PagoResource extends Resource
 
                         $record->save();
                     }),
+                Tables\Actions\Action::make('printVoucher')
+                    ->icon('heroicon-o-printer')
+                    ->hiddenLabel(true)
+                    ->tooltip('Imprimir Voucher')
+                    ->url(fn (Pago $record): string => route('pagos.voucher', ['id' => $record->id]))
+                    ->openUrlInNewTab()
+                    ->color('success'),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->defaultSort('id', 'desc')

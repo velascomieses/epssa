@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\AlmacenResource\Pages;
-use App\Filament\Resources\AlmacenResource\RelationManagers;
-use App\Models\Almacen;
+use App\Filament\Resources\AtributoResource\Pages;
+use App\Filament\Resources\AtributoResource\RelationManagers;
+use App\Models\Atributo;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -13,19 +13,15 @@ use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class AlmacenResource extends Resource
+class AtributoResource extends Resource
 {
-    protected static ?string $model = Almacen::class;
+    protected static ?string $model = Atributo::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-identification';
+    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     protected static ?string $navigationGroup = 'Configuraciones';
 
-    protected static ?int $navigationSort = 5;
-
-    protected static ?string $navigationLabel = 'Almacenes';
-
-    protected static ?string $slug = 'almacenes';
+    protected static ?int $navigationSort = 6;
 
     public static function form(Form $form): Form
     {
@@ -34,6 +30,11 @@ class AlmacenResource extends Resource
                 Forms\Components\TextInput::make('nombre')
                     ->required()
                     ->maxLength(255),
+                Forms\Components\TextInput::make('tipo')
+                    ->required()
+                    ->maxLength(255),
+                Forms\Components\Toggle::make('es_visible')
+                    ->required(),
             ]);
     }
 
@@ -43,6 +44,10 @@ class AlmacenResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('nombre')
                     ->searchable(),
+                Tables\Columns\TextColumn::make('tipo')
+                    ->searchable(),
+                Tables\Columns\IconColumn::make('es_visible')
+                    ->boolean(),
                 Tables\Columns\TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -69,7 +74,7 @@ class AlmacenResource extends Resource
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ManageAlmacens::route('/'),
+            'index' => Pages\ManageAtributos::route('/'),
         ];
     }
 }

@@ -70,6 +70,11 @@ class Contrato extends Model
     {
         return $this->hasMany(ContratoPersona::class, 'contrato_id', 'id');
     }
+
+    public function beneficiarios()
+    {
+        return $this->contratoPersonas()->where('rol_id', 3);
+    }
     public function rolTitular()
     {
         return $this->hasOneThrough(

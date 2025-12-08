@@ -10,6 +10,8 @@ class ManagePersonals extends ManageRecords
 {
     protected static string $resource = PersonalResource::class;
 
+    protected static ?string $title = 'Personal';
+
     protected function getHeaderActions(): array
     {
         return [

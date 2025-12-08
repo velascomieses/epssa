@@ -15,7 +15,9 @@ use Illuminate\Contracts\Pagination\CursorPaginator;
 use Illuminate\Database\Eloquent\Builder;
 class RiskPortfolio extends BaseWidget
 {
+    protected static ?int $sort = 2;
     protected array|string|int $columnSpan = 'full';
+
     protected static ?string $heading = 'Cartera de riesgo';
 
     public function table(Table $table): Table

@@ -35,8 +35,8 @@ UPDATE persona, tipo_via SET direccion = CONCAT(tipo_via.nombre, ' ' ,persona.di
 ALTER TABLE `persona` DROP FOREIGN KEY `fk_persona_tipo_via_id`;
 ALTER TABLE `persona` DROP INDEX `fk_persona_tipo_via_id_idx` ;
 ALTER TABLE `persona` DROP COLUMN `tipo_via_id`;
-ALTER TABLE `persona` DROP INDEX `fk_persona_tipo_documento_identidad_id_idx` ;
 ALTER TABLE `persona` DROP FOREIGN KEY `fk_persona_tipo_documento_identidad_id`;
+ALTER TABLE `persona` DROP INDEX `fk_persona_tipo_documento_identidad_id_idx` ;
 ALTER TABLE `persona` CHANGE tipo_documento_identidad_id tipo_documento_identidad_id INT(11);
 ALTER TABLE `tipo_documento_identidad` CHANGE id id INT(11) NOT NULL AUTO_INCREMENT;
 ALTER TABLE `persona` ADD CONSTRAINT fk_persona_tipo_documento_identidad_id FOREIGN KEY (tipo_documento_identidad_id) REFERENCES tipo_documento_identidad (id);
@@ -51,6 +51,8 @@ UPDATE `tipo_documento_identidad` SET `nombre` = 'DNI' WHERE (`id` = '1');
 UPDATE `tipo_documento_identidad` SET `nombre` = 'LE' WHERE (`id` = '4');
 UPDATE `tipo_documento_identidad` SET `nombre` = 'RUC' WHERE (`id` = '5');
 UPDATE persona SET sexo = NULL WHERE sexo = "";
+ALTER TABLE `estado_civil` CHANGE descripcion nombre VARCHAR(245);
+ALTER TABLE `oficina` DROP COLUMN serie_recibo;
 -- DROP TABLES
 DROP TABLE IF EXISTS certificado_defuncion;
 DROP TABLE IF EXISTS causa_def;

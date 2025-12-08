@@ -18,7 +18,7 @@ return [
 
     //'path_main'           => '', // K_PATH_MAIN
     //'path_url'            => '', // K_PATH_URL
-    'header_logo'         => 'logo.png', // PDF_HEADER_LOGO
+    'header_logo'         => 'logo_mello.png', // PDF_HEADER_LOGO
     'header_logo_width'   => 20, // PDF_HEADER_LOGO_WIDTH
     //    'path_cache'          => '', // K_PATH_CACHE
     //    'blank_image'         => '', // K_BLANK_IMAGE
