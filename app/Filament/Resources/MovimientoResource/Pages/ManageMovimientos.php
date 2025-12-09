@@ -58,7 +58,7 @@ class ManageMovimientos extends ManageRecords
     {
         return [
             Actions\Action::make('entrada')
-                ->label('Nueva Entrada')
+                ->label('Entrada')
                 ->icon('heroicon-o-arrow-down-tray')
                 ->color('success')
                 ->form([
@@ -119,7 +119,7 @@ class ManageMovimientos extends ManageRecords
                 ->action(function (array $data) {
                     DB::transaction(function () use ($data) {
                         $movimiento = Movimiento::create([
-                            'tipo_movimiento' => 'IN',
+                            'tipo_movimiento' => 'ENTRADA',
                             'fecha_movimiento' => $data['fecha_movimiento'],
                             'proveedor_id' => $data['proveedor_id'],
                             'almacen_destino_id' => $data['almacen_destino_id'],
@@ -127,7 +127,7 @@ class ManageMovimientos extends ManageRecords
                         ]);
 
                         foreach ($data['items'] as $item) {
-                            $numeroSerie = $this->generarNumeroSerieUnico($item['producto_id']);
+                            $numeroSerie = $this->generateUniqueSerialNumber($item['producto_id']);
 
                             $productoItem = ProductoItem::create([
                                 'producto_id' => $item['producto_id'],
@@ -145,7 +145,7 @@ class ManageMovimientos extends ManageRecords
                 }),
 
             Actions\Action::make('transferencia')
-                ->label('Nueva Transferencia')
+                ->label('Transferencia')
                 ->icon('heroicon-o-arrow-path')
                 ->color('warning')
                 ->form([
@@ -209,7 +209,7 @@ class ManageMovimientos extends ManageRecords
                 ->action(function (array $data) {
                     DB::transaction(function () use ($data) {
                         $movimiento = Movimiento::create([
-                            'tipo_movimiento' => 'TRANSFER',
+                            'tipo_movimiento' => 'TRASFERENCIA',
                             'fecha_movimiento' => $data['fecha_movimiento'],
                             'almacen_origen_id' => $data['almacen_origen_id'],
                             'almacen_destino_id' => $data['almacen_destino_id'],
@@ -232,77 +232,76 @@ class ManageMovimientos extends ManageRecords
                         }
                     });
                 }),
-
-            Actions\Action::make('salida')
-                ->label('Nueva Salida')
-                ->icon('heroicon-o-arrow-up-tray')
-                ->color('danger')
-                ->form([
-                    DatePicker::make('fecha_movimiento')
-                        ->required()
-                        ->default(now()),
-                    Select::make('almacen_origen_id')
-                        ->label('Almacén Origen')
-                        ->options(Almacen::all()->pluck('nombre', 'id'))
-                        ->required()
-                        ->searchable()
-                        ->live(),
-                    TableRepeater::make('items')
-                        ->headers([
-                            Header::make('producto_item_id')->label('Producto')->width('300px'),
-                        ])
-                        ->schema([
-                            Select::make('producto_item_id')
-                                ->label('Producto')
-                                ->required()
-                                ->searchable()
-                                ->allowHtml()
-                                ->options(function ($get) {
-                                    $almacenOrigenId = $get('../../almacen_origen_id');
-                                    if (!$almacenOrigenId) return [];
-
-                                    return ProductoItem::with('producto')
-                                        ->where('almacen_id', $almacenOrigenId)
-                                        ->where('estado', 'DISPONIBLE')
-                                        ->get()
-                                        ->mapWithKeys(fn ($item) => [
-                                            $item->id => $item->producto->nombre .
-                                                        " <span class='text-gray-500'>[{$item->numero_serie}]</span>"
-                                        ])
-                                        ->toArray();
-                                })
-                                ->columnSpanFull(),
-                        ])
-                        ->defaultItems(1)
-                        ->addActionLabel('Agregar producto'),
-                ])
-                ->action(function (array $data) {
-                    DB::transaction(function () use ($data) {
-                        $movimiento = Movimiento::create([
-                            'tipo_movimiento' => 'OUT',
-                            'fecha_movimiento' => $data['fecha_movimiento'],
-                            'almacen_origen_id' => $data['almacen_origen_id'],
-                            'user_id' => Auth::id(),
-                        ]);
-
-                        foreach ($data['items'] as $item) {
-                            $productoItem = ProductoItem::findOrFail($item['producto_item_id']);
-
-                            // Marcar como no disponible
-                            $productoItem->update([
-                                'estado' => 'NO_DISPONIBLE',
-                            ]);
-
-                            $movimiento->items()->create([
-                                'producto_id' => $productoItem->producto_id,
-                                'producto_item_id' => $productoItem->id,
-                            ]);
-                        }
-                    });
-                }),
+//            Actions\Action::make('salida')
+//                ->label('Nueva Salida')
+//                ->icon('heroicon-o-arrow-up-tray')
+//                ->color('danger')
+//                ->form([
+//                    DatePicker::make('fecha_movimiento')
+//                        ->required()
+//                        ->default(now()),
+//                    Select::make('almacen_origen_id')
+//                        ->label('Almacén Origen')
+//                        ->options(Almacen::all()->pluck('nombre', 'id'))
+//                        ->required()
+//                        ->searchable()
+//                        ->live(),
+//                    TableRepeater::make('items')
+//                        ->headers([
+//                            Header::make('producto_item_id')->label('Producto')->width('300px'),
+//                        ])
+//                        ->schema([
+//                            Select::make('producto_item_id')
+//                                ->label('Producto')
+//                                ->required()
+//                                ->searchable()
+//                                ->allowHtml()
+//                                ->options(function ($get) {
+//                                    $almacenOrigenId = $get('../../almacen_origen_id');
+//                                    if (!$almacenOrigenId) return [];
+//
+//                                    return ProductoItem::with('producto')
+//                                        ->where('almacen_id', $almacenOrigenId)
+//                                        ->where('estado', 'DISPONIBLE')
+//                                        ->get()
+//                                        ->mapWithKeys(fn ($item) => [
+//                                            $item->id => $item->producto->nombre .
+//                                                        " <span class='text-gray-500'>[{$item->numero_serie}]</span>"
+//                                        ])
+//                                        ->toArray();
+//                                })
+//                                ->columnSpanFull(),
+//                        ])
+//                        ->defaultItems(1)
+//                        ->addActionLabel('Agregar producto'),
+//                ])
+//                ->action(function (array $data) {
+//                    DB::transaction(function () use ($data) {
+//                        $movimiento = Movimiento::create([
+//                            'tipo_movimiento' => 'SALIDA',
+//                            'fecha_movimiento' => $data['fecha_movimiento'],
+//                            'almacen_origen_id' => $data['almacen_origen_id'],
+//                            'user_id' => Auth::id(),
+//                        ]);
+//
+//                        foreach ($data['items'] as $item) {
+//                            $productoItem = ProductoItem::findOrFail($item['producto_item_id']);
+//
+//                            // Marcar como no disponible
+//                            $productoItem->update([
+//                                'estado' => 'NO_DISPONIBLE',
+//                            ]);
+//
+//                            $movimiento->items()->create([
+//                                'producto_id' => $productoItem->producto_id,
+//                                'producto_item_id' => $productoItem->id,
+//                            ]);
+//                        }
+//                    });
+//                }),
         ];
     }
-    private function generarNumeroSerieUnico(string $productoId): string
+    private function generateUniqueSerialNumber(string $productoId): string
     {
         do {
             $numeroSerie = strtoupper(substr($productoId, 0, 4)) . '-' .

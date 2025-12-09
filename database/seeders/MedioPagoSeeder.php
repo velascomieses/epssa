@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\MedioPago;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -22,7 +23,7 @@ class MedioPagoSeeder extends Seeder
             'Tarjeta de débito',
         ];
         foreach ($mediosPago as $medio) {
-            \App\Models\MedioPago::create(['nombre' => $medio]);
+            MedioPago::firstOrCreate(['nombre' => $medio]);
         }
     }
 }

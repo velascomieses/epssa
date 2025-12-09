@@ -1,0 +1,126 @@
+<?php
+
+namespace App\Filament\Resources;
+
+use App\Filament\Resources\UserResource\Pages;
+use App\Filament\Resources\UserResource\RelationManagers;
+use App\Models\User;
+use Filament\Forms;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\TextInput;
+use Filament\Forms\Form;
+use Filament\Notifications\Notification;
+use Filament\Resources\Resource;
+use Filament\Tables;
+use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\QueryException;
+use Spatie\Permission\Models\Role;
+
+class UserResource extends Resource
+{
+    protected static ?string $model = User::class;
+
+    protected static ?string $navigationIcon = 'heroicon-o-users';
+    protected static ?string $navigationLabel = 'Usuarios';
+
+    protected static ?string $navigationGroup = 'Configuraciones';
+
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                TextInput::make('name')
+                    ->required()
+                    ->maxLength(255),
+                TextInput::make('email')->email()->required()->unique(ignoreRecord: true),
+                TextInput::make('password')
+                    ->password()
+                    ->rules([
+                        'nullable',
+                        'min:8',
+                        'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/',
+                    ])
+                    ->validationMessages([
+                        'min' => 'La contraseña debe tener al menos 8 caracteres.',
+                        'regex' => 'La contraseña debe contener al menos: una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&).',
+                    ])
+                    ->dehydrateStateUsing(fn ($state) => $state ? bcrypt($state) : null)
+                    ->dehydrated(fn ($state) => filled($state))
+                    ->label('Password'),
+                CheckboxList::make('roles')
+                    ->label('Roles')
+                    ->relationship('roles', 'name')
+                    ->options(fn () => Role::pluck('name', 'id'))
+                    ->columns(2)
+                    ->required(),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                TextColumn::make('name')
+                    ->searchable(),
+                TextColumn::make('email')
+                    ->searchable(),
+                TextColumn::make('email_verified_at')
+                    ->dateTime()
+                    ->sortable(),
+                TextColumn::make('personal.nombres')
+                    ->label('Personal')
+                    ->formatStateUsing(fn($record) => $record->personal?->full_name ?? 'N/A')
+                    ->sortable(),
+                TextColumn::make('roles.name')
+                    ->label('Roles')
+                    ->colors([
+                        'primary' => 'admin',
+                        'success' => 'super-admin',
+                        'warning' => 'payment',
+                        'info' => 'platform',
+                    ])
+                    ->badge()
+             ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Eliminar')
+                    ->icon('heroicon-o-trash')
+                    ->action(function ($record) {
+                        try {
+                            $record->delete();
+                            Notification::make()
+                                ->title('Registro eliminado con éxito.')
+                                ->success()
+                                ->send();
+                        } catch (QueryException $exception) {
+                            Notification::make()
+                                ->title('Error al eliminar.')
+                                ->body('No se puede eliminar este registro porque está relacionado con otros datos.')
+                                ->danger()
+                                ->send();
+                        }
+                    })
+                    ->requiresConfirmation()
+                    ->color('danger'),
+            ])
+            ->bulkActions([
+//                Tables\Actions\BulkActionGroup::make([
+//                    Tables\Actions\DeleteBulkAction::make(),
+//                ]),
+            ]);
+    }
+
+    public static function getPages(): array
+    {
+        return [
+            'index' => Pages\ManageUsers::route('/'),
+        ];
+    }
+}

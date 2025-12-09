@@ -14,9 +14,12 @@ return new class extends Migration
         Schema::create('movimiento_item', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->uuid('movimiento_id');
-            $table->integer('producto_id');
+            $table->foreign('movimiento_id')->references('id')->on('movimiento')->restrictOnDelete();
+            $table->integer('producto_id')->nullable();
+            $table->foreign('producto_id')->references('id')->on('producto')->restrictOnDelete();
             $table->decimal('cantidad', 16, 2)->nullable();
             $table->uuid('producto_item_id')->nullable();
+            $table->foreign('producto_item_id')->references('id')->on('producto_item')->restrictOnDelete();
             $table->timestamps();
         });
     }

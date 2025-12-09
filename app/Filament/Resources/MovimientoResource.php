@@ -26,7 +26,7 @@ class MovimientoResource extends Resource
 {
     protected static ?string $model = Movimiento::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationIcon = 'heroicon-o-arrow-path';
 
     protected static ?string $navigationGroup = 'Inventario';
 
@@ -40,9 +40,9 @@ class MovimientoResource extends Resource
                 Select::make('tipo_movimiento')
                     ->required()
                     ->options([
-                        'IN' => 'ENTRADA',
-                        'OUT' => 'SALIDA',
-                        'TRANSFER' => 'TRASFERENCIA',
+                        'ENTRADA' => 'ENTRADA',
+                        'SALIDA' => 'SALIDA',
+                        'TRASFERENCIA' => 'TRASFERENCIA',
                     ]),
                 DatePicker::make('fecha_movimiento')
                     ->required(),
@@ -172,7 +172,7 @@ class MovimientoResource extends Resource
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
-                Tables\Actions\EditAction::make(),
+                // Tables\Actions\EditAction::make(),
                 Tables\Actions\DeleteAction::make(),
             ])
             ->bulkActions([

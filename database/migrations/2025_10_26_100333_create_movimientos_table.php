@@ -16,9 +16,10 @@ return new class extends Migration
             $table->string('tipo_movimiento', 50);
             $table->date('fecha_movimiento');
             $table->integer('proveedor_id')->nullable();
-            $table->bigInteger('almacen_origen_id')->nullable();
-            $table->bigInteger('almacen_destino_id')->nullable();
-            $table->bigInteger('user_id');
+            $table->foreign('proveedor_id')->references('id')->on('persona')->restrictOnDelete();
+            $table->foreignId('almacen_origen_id')->nullable()->constrained('almacen')->restrictOnDelete();
+            $table->foreignId('almacen_destino_id')->nullable()->constrained('almacen')->restrictOnDelete();
+            $table->foreignId('user_id')->nullable()->constrained('users')->restrictOnDelete();
             $table->timestamps();
         });
     }

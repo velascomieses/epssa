@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('pago', function (Blueprint $table) {
             $table->foreignId('medio_pago_id')
-                ->nullable()->after('tipo_comprobante_id');
+                ->nullable()->after('tipo_comprobante_id')->restrictOnDelete();
         });
     }
 

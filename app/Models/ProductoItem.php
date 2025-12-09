@@ -26,4 +26,8 @@ class ProductoItem extends Model
     {
         return $this->belongsTo(Producto::class, 'producto_id', 'id');
     }
+    public function almacen()
+    {
+        return $this->belongsTo(Almacen::class, 'almacen_id', 'id');
+    }
 }

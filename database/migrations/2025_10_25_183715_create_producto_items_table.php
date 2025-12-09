@@ -13,9 +13,10 @@ return new class extends Migration
     {
         Schema::create('producto_item', function (Blueprint $table) {
             $table->uuid('id')->primary();
-            $table->integer('producto_id');
+            $table->integer('producto_id')->nullable();
+            $table->foreign('producto_id')->references('id')->on('producto')->restrictOnDelete();
             $table->string('numero_serie', 100)->unique();
-            $table->bigInteger('almacen_id')->nullable();
+            $table->foreignId('almacen_id')->constrained('almacen')->restrictOnDelete();
             $table->string('estado', 50)->nullable();
             $table->timestamps();
         });

@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\Contrato;
 use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
@@ -17,9 +18,23 @@ class DatabaseSeeder extends Seeder
     {
         // User::factory(10)->create();
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        User::firstOrCreate(
+            ['email' => 'admin@funerariamello.com'],
+            [
+                'name' => 'Admin',
+                'password' => bcrypt('123'),
+            ]
+        );
+
+        $user = User::find(1);
+
+        if ($user) {
+            $user->assignRole('super-admin');
+        }
+        $this->call([
+            DestinoPagoSeeder::class,
+            MedioPagoSeeder::class,
+            RoleSeeder::class,
         ]);
     }
 }

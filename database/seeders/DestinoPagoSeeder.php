@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Models\DestinoPago;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -21,7 +22,7 @@ class DestinoPagoSeeder extends Seeder
             'Otros',
         ];
         foreach ($destinosPago as $destino) {
-            \App\Models\DestinoPago::create(['nombre' => $destino]);
+            DestinoPago::firstOrCreate(['nombre' => $destino]);
         }
     }
 }

@@ -96,4 +96,8 @@ class Contrato extends Model
         return $this->hasMany(Amortizacion::class, 'contrato_id', 'id');
     }
 
+    public function notas()
+    {
+        return $this->hasMany(ContratoNota::class, 'contrato_id', 'id');
+    }
 }

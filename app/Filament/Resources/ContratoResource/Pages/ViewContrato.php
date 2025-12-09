@@ -4,6 +4,7 @@ namespace App\Filament\Resources\ContratoResource\Pages;
 
 use App\Filament\Resources\ContratoResource;
 use App\Models\Contrato;
+use App\Models\ContratoNota;
 use App\Services\CronogramaService;
 use Awcodes\TableRepeater\Components\TableRepeater;
 use Awcodes\TableRepeater\Header;
@@ -14,6 +15,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Enums\ActionSize;
+use Illuminate\Support\Carbon;
 
 class ViewContrato extends ViewRecord
 {
@@ -87,6 +89,62 @@ class ViewContrato extends ViewRecord
                     ->icon('heroicon-o-trash')
                     ->requiresConfirmation()
                     ->visible(fn(Contrato $record): bool => $record->estado_id == 1),
+                Actions\Action::make('notas')
+                    ->mountUsing(function (\Filament\Forms\Form $form, Contrato $record) {
+                        $form->fill([
+                            'contrato_id' => $record->id,
+                            'notas_anteriores' => $record->notas->map(fn($nota) => [
+                                'nota' => $nota->nota,
+                                'created_at' => $nota->created_at,
+                                'user_name' => $nota->user->name,
+                            ])->toArray(),
+                        ]);
+                    })
+                    ->form([
+                        Hidden::make('contrato_id'),
+                        TableRepeater::make('notas_anteriores')
+                            ->headers([
+                                Header::make('nota')->label('Nota'),
+                                Header::make('created_at')->label('Fecha de Creación'),
+                                Header::make('user_audit.name')->label('Creado por'),
+                            ])
+                            ->label('Notas Anteriores')
+                            ->disabled()
+                            ->schema([
+                                \Filament\Forms\Components\Textarea::make('nota')
+                                    ->label('Nota')
+                                    ->rows(2)
+                                    ->disabled(),
+                                \Filament\Forms\Components\TextInput::make('created_at')
+                                    ->label('Fecha de Creación')
+                                    ->disabled()
+                                    ->formatStateUsing(fn($state)=> Carbon::parse($state)->format('d/m/Y H:i')),
+                                \Filament\Forms\Components\TextInput::make('user_name')
+                                    ->label('Creado por')
+                                    ->disabled(),
+                            ])
+                            ->columnSpan('full')
+                            ->hidden(fn (\Filament\Forms\Get $get): bool => empty($get('notas_anteriores'))),
+                        Textarea::make('nota')
+                            ->label('Notas')
+                            ->rows(3)
+                            ->required()
+                            ->maxLength(500)
+                            ->placeholder('Escribe tus notas aquí...'),
+                    ])
+                    ->action(function (array $data) {
+                        $contratoNota = new ContratoNota();
+                        $contratoNota->contrato_id = $data['contrato_id'];
+                        $contratoNota->user_audit_id = auth()->user()->id;
+                        $contratoNota->nota = $data['nota'];
+                        $contratoNota->save();
+
+                        Notification::make()
+                            ->title('Nota agregada con éxito')
+                            ->success()
+                            ->send();
+                    })
+                    ->icon('heroicon-o-chat-bubble-left'),
             ])
                 ->label('Opciones')
                 ->icon('heroicon-m-ellipsis-vertical')

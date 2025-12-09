@@ -17,7 +17,7 @@ class AlmacenResource extends Resource
 {
     protected static ?string $model = Almacen::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-identification';
+    protected static ?string $navigationIcon = 'heroicon-o-building-storefront';
 
     protected static ?string $navigationGroup = 'Configuraciones';
 
