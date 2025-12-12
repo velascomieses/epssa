@@ -79,7 +79,11 @@ class ContratoResource extends Resource
                             ->label('Categoría')
                             ->options(Categoria::all()->pluck('nombre', 'id'))
                             ->required(),
+                        TextInput::make('numero_serie')
+                            ->label('Número de Serie'),
                         Select::make('personal_id')
+                            ->label('Interviniente')
+                            ->searchable()
                             ->relationship(
                                 name: 'personal',
                                 modifyQueryUsing: fn (Builder $query, $record) =>

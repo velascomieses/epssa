@@ -11,12 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('atributo', function (Blueprint $table) {
-            $table->id();
-            $table->string('nombre');
-            $table->string('tipo');
-            $table->boolean('es_visible')->default(true);
-            $table->timestamps();
+        Schema::table('contrato', function (Blueprint $table) {
+            $table->string('numero_serie')->nullable()->after('categoria_id');
         });
     }
 
@@ -25,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('atributo');
+        Schema::table('contrato', function (Blueprint $table) {
+            $table->dropColumn('numero_serie');
+        });
     }
 };

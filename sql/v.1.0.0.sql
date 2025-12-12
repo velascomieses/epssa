@@ -9,6 +9,7 @@ DROP TABLE django_admin_log;
 DROP TABLE django_migrations;
 DROP TABLE django_session;
 DROP TABLE django_content_type;
+DROP FUNCTION letras;
 ALTER TABLE `personal`
 DROP FOREIGN KEY `fk_personal_user_id`;
 ALTER TABLE `personal`
@@ -54,15 +55,15 @@ UPDATE persona SET sexo = NULL WHERE sexo = "";
 ALTER TABLE `estado_civil` CHANGE descripcion nombre VARCHAR(245);
 ALTER TABLE `oficina` DROP COLUMN serie_recibo;
 -- DROP TABLES
-DROP TABLE IF EXISTS certificado_defuncion;
-DROP TABLE IF EXISTS causa_def;
+-- DROP TABLE IF EXISTS certificado_defuncion;
+-- DROP TABLE IF EXISTS causa_def;
 DROP TABLE IF EXISTS correlativo;
 DROP TABLE IF EXISTS correo;
 DROP TABLE IF EXISTS documento_identidad;
 DROP TABLE IF EXISTS domicilio;
 DROP TABLE IF EXISTS item_facturacion;
 DROP TABLE IF EXISTS facturacion;
-DROP TABLE IF EXISTS sitio_ocu;
+-- DROP TABLE IF EXISTS sitio_ocu;
 DROP TABLE IF EXISTS telefono;
 DROP TABLE IF EXISTS tipo_domicilio;
 DROP TABLE IF EXISTS tipo_telefono;
@@ -106,7 +107,7 @@ DELIMITER ;
 ;
 
 DELIMITER $$
-CREATE PROCEDURE `sp_payments`( contrato_id INT, fecha_emision DATE, fecha_calculo DATE, moneda_id INT, recibo VARCHAR(255), personal_id INT, importe DECIMAL(16,2), tipo_comprobante_id INT, operacion INT, oficina_id INT, tipo_ingreso INT, referencia TEXT, OUT pago_id INT )
+CREATE PROCEDURE `sp_payments`( contrato_id INT, fecha_emision DATE, fecha_calculo DATE, moneda_id INT, recibo VARCHAR(255), importe DECIMAL(16,2), tipo_comprobante_id INT, oficina_id INT, tipo_ingreso INT, referencia TEXT, medio_pago_id INT, created_at TIMESTAMP, user_audit_id INT, OUT pago_id INT )
 BEGIN
     DECLARE done INT DEFAULT 0;
 
@@ -138,15 +139,14 @@ BEGIN
 
 
     INSERT INTO pago (	`id`,`fecha_emision`,`fecha_calculo`, `recibo`,`importe`,`estado`,
-						`contrato_id`, `personal_id`, `tipo_comprobante_id`, `moneda_id`,
-						`operacion`, `oficina_id`, `tipo_ingreso`, `referencia`  )
-    VALUES (NULL, fecha_emision, fecha_calculo, recibo, importe, 0, contrato_id,
-			personal_id, tipo_comprobante_id, moneda_id, operacion,
-			oficina_id, tipo_ingreso, referencia );
+						`contrato_id`, `tipo_comprobante_id`, `moneda_id`, `oficina_id`, `tipo_ingreso`, `referencia`,
+                        `medio_pago_id`, `created_at`, `updated_at`, `user_audit_id`  )
+    VALUES (NULL, fecha_emision, fecha_calculo, recibo, importe, 0, contrato_id, tipo_comprobante_id, moneda_id,
+			oficina_id, tipo_ingreso, referencia, medio_pago_id, created_at, created_at, user_audit_id );
     SET pago_id = LAST_INSERT_ID();
 
-    INSERT INTO `pago_producto` (`pago_id`, `cantidad`, `producto_id`, `precio_unitario`, `importe` )
-    VALUES (pago_id, 1, 23, importe, importe);
+    -- INSERT INTO `pago_producto` (`pago_id`, `cantidad`, `producto_id`, `precio_unitario`, `importe` )
+    -- VALUES (pago_id, 1, 23, importe, importe);
 
     SET tea = (SELECT COALESCE(`contrato`.`tea`,0.00)  FROM `contrato` WHERE contrato.id = contrato_id);
     OPEN cur;
@@ -209,4 +209,40 @@ END$$
 DELIMITER ;
 ;
 
+DELIMITER $$
+CREATE PROCEDURE `sp_delete_payments`( IN pid INT , IN pUpdatedAt TIMESTAMP, pUserAuditId INT, OUT m VARCHAR(250) )
+BEGIN
+    DECLARE done INT DEFAULT 0;
+    DECLARE a , b , u, d, y INT;
+
+    DECLARE c CURSOR FOR SELECT cuota , contrato_id  FROM amortizacion WHERE pago_id = pid ORDER BY cuota ASC;
+    DECLARE CONTINUE HANDLER FOR SQLSTATE '02000' SET done = 1;
+
+    SET u  = ( SELECT pago.contrato_id  FROM pago WHERE id = pid);
+    SET d  = ( SELECT pago.id FROM pago WHERE contrato_id = u AND estado = 0 AND tipo_ingreso = 1 ORDER BY 1 DESC LIMIT 1 );
+    SET y  = ( SELECT pago.tipo_ingreso  FROM pago WHERE id = pid);
+    IF  y = 1 THEN
+        IF d = pid THEN
+            OPEN c;
+            REPEAT
+                FETCH c INTO a , b;
+                UPDATE cronograma SET estado = 0 WHERE cuota = a AND contrato_id = b;
+            UNTIL done END REPEAT;
+            SET m = CONCAT('success-Se ha extornado el pago con código ', pid, '.' );
+            UPDATE pago SET estado = 1, updated_at = pUpdatedAt, user_audit_id = pUserAuditId WHERE id = pid;
+            UPDATE contrato SET estado_id = 1 WHERE id = u;
+            DELETE FROM amortizacion WHERE pago_id = pid;
+        ELSE
+            SET m = CONCAT('warning-El código de pago no corresponde al último registrado para el contrato ', u, '.' );
+        END IF;
+
+    ELSE
+        UPDATE pago SET estado = 1, updated_at = pUpdatedAt, user_audit_id = pUserAuditId WHERE id = pid;
+        SET m = CONCAT('success-Se ha extornado el pago con código ', pid, '.' );
+    END IF;
+
+END$$
+
+DELIMITER ;
+;
 

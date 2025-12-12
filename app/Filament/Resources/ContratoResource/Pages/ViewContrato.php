@@ -5,6 +5,7 @@ namespace App\Filament\Resources\ContratoResource\Pages;
 use App\Filament\Resources\ContratoResource;
 use App\Models\Contrato;
 use App\Models\ContratoNota;
+use App\Models\ProductoItem;
 use App\Services\CronogramaService;
 use Awcodes\TableRepeater\Components\TableRepeater;
 use Awcodes\TableRepeater\Header;
@@ -16,6 +17,8 @@ use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ViewRecord;
 use Filament\Support\Enums\ActionSize;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 
 class ViewContrato extends ViewRecord
 {
@@ -48,6 +51,52 @@ class ViewContrato extends ViewRecord
             ->button(),
             Actions\ActionGroup::make([
                 Actions\EditAction::make(),
+                Actions\Action::make('registrarSalida')
+                    ->label('Registrar Salida')
+                    ->icon('heroicon-o-arrow-up-tray')
+                    ->color('danger')
+                    ->visible(fn(Contrato $record): bool =>
+                        !empty($record->numero_serie) &&
+                        $record->productos()->whereHas('producto', fn($q) => $q->where('es_serializado', true))->exists()
+                    )
+                    ->action(function (Contrato $record) {
+                        $productoItem = ProductoItem::where('numero_serie', $record->numero_serie)
+                            ->where('estado', 'DISPONIBLE')
+                            ->first();
+
+                        if (!$productoItem) {
+                            Notification::make()
+                                ->title('Error')
+                                ->body('Número de serie no encontrado o producto no disponible.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        DB::transaction(function () use ($record, $productoItem) {
+                            $movimiento = \App\Models\Movimiento::create([
+                                'tipo_movimiento' => 'SALIDA',
+                                'fecha_movimiento' => now(),
+                                'almacen_origen_id' => $productoItem->almacen_id,
+                                'user_id' => Auth::id(),
+                            ]);
+
+                            $productoItem->update(['estado' => 'VENDIDO']);
+
+                            $movimiento->items()->create([
+                                'producto_id' => $productoItem->producto_id,
+                                'producto_item_id' => $productoItem->id,
+                            ]);
+                        });
+
+                        Notification::make()
+                            ->title('Salida registrada correctamente')
+                            ->success()
+                            ->send();
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading('Registrar Salida de Inventario')
+                    ->modalDescription('Se registrará la salida del producto y se marcará como VENDIDO.'),
                 Actions\Action::make('generarCronograma')
                     ->label('Generar cronograma')
                     ->action(function () {
@@ -90,6 +139,7 @@ class ViewContrato extends ViewRecord
                     ->requiresConfirmation()
                     ->visible(fn(Contrato $record): bool => $record->estado_id == 1),
                 Actions\Action::make('notas')
+                    ->label('Notas de seguimiento')
                     ->mountUsing(function (\Filament\Forms\Form $form, Contrato $record) {
                         $form->fill([
                             'contrato_id' => $record->id,
@@ -103,12 +153,13 @@ class ViewContrato extends ViewRecord
                     ->form([
                         Hidden::make('contrato_id'),
                         TableRepeater::make('notas_anteriores')
+                            ->hiddenLabel(true)
                             ->headers([
                                 Header::make('nota')->label('Nota'),
                                 Header::make('created_at')->label('Fecha de Creación'),
                                 Header::make('user_audit.name')->label('Creado por'),
                             ])
-                            ->label('Notas Anteriores')
+                            ->label('Notas de seguimiento')
                             ->disabled()
                             ->schema([
                                 \Filament\Forms\Components\Textarea::make('nota')
@@ -126,11 +177,11 @@ class ViewContrato extends ViewRecord
                             ->columnSpan('full')
                             ->hidden(fn (\Filament\Forms\Get $get): bool => empty($get('notas_anteriores'))),
                         Textarea::make('nota')
-                            ->label('Notas')
+                            ->hiddenLabel(true)
                             ->rows(3)
                             ->required()
                             ->maxLength(500)
-                            ->placeholder('Escribe tus notas aquí...'),
+                            ->placeholder('Escribe tus notas de seguiento aquí...'),
                     ])
                     ->action(function (array $data) {
                         $contratoNota = new ContratoNota();

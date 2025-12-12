@@ -28,19 +28,20 @@ class ManagePagos extends ManageRecords
                         //}
                         DB::beginTransaction();
                         // ( contrato_id INT, fecha_emision DATE, fecha_calculo DATE, moneda_id INT, recibo VARCHAR(255), personal_id INT, importe DECIMAL(16,2), tipo_comprobante_id INT, operacion INT, oficina_id INT, tipo_ingreso INT, referencia TEXT, OUT pago_id INT
-                        $result = DB::select('CALL `sp_payments`( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @id )', [
+                        $result = DB::select('CALL `sp_payments`( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @id )', [
                             $data['contrato_id'],
                             $data['fecha_emision'], // fecha1
                             $data['fecha_calculo'],
                             1, // moneda_id
                             $data['recibo'], // num_recibo
-                            null, // personal_id
                             $data['importe'],
                             $data['tipo_comprobante_id'], // comprobante_id 3 RECIBO
-                            null, // operacion 1 amortizacion 2 cancelacion 3 otro
                             $data['oficina_id'], // oficina_id
                             1, // tipo_ingreso 1 pago 2 otro pago
                             $data['referencia'], // referencia
+                            $data['medio_pago_id'], // medio_pago_id
+                            Carbon::now(), // created_at
+                            Auth::user()->id,
                         ]);
                         // commit transaction
                         DB::commit();

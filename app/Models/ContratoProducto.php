@@ -23,4 +23,9 @@ class ContratoProducto extends Model
     ];
 
     public $timestamps = false;
+
+    public function producto()
+    {
+        return $this->belongsTo(Producto::class, 'producto_id', 'id');
+    }
 }

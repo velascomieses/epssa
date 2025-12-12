@@ -15,6 +15,7 @@ class Contrato extends Model
         'fecha_contrato',
         'numero_contrato',
         'categoria_id',
+        'numero_serie',
         'inicial',
         'descuento',
         'total',

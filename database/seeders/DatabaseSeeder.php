@@ -26,15 +26,17 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        $this->call([
+            DestinoPagoSeeder::class,
+            MedioPagoSeeder::class,
+            RoleSeeder::class,
+            AtributoSeeder::class,
+        ]);
+
         $user = User::find(1);
 
         if ($user) {
             $user->assignRole('super-admin');
         }
-        $this->call([
-            DestinoPagoSeeder::class,
-            MedioPagoSeeder::class,
-            RoleSeeder::class,
-        ]);
     }
 }

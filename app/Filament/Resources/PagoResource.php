@@ -31,9 +31,11 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Closure;
+use Illuminate\Support\Str;
 
 class PagoResource extends Resource
 {
@@ -353,7 +355,42 @@ class PagoResource extends Resource
                     ->url(fn (Pago $record): string => route('pagos.voucher', ['id' => $record->id]))
                     ->openUrlInNewTab()
                     ->color('success'),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Eliminar')
+                    ->icon('heroicon-o-trash')
+                    ->action(function (Pago $record) {
+                        try {
+                            $result = \DB::select('CALL `sp_delete_payments`( ?, ?, ?,  @msg )', [
+                                $record->id, // comprobante_id
+                                Carbon::now(), // updated_at
+                                Auth::user()->id, // updated_by
+                            ]);
+
+                            $msgResult = \DB::select('SELECT @msg as message');
+
+                            $data = Str::of($msgResult[0]->message)->split('/\-/');
+                            if ($data[0] == 'warning') {
+                                Notification::make()
+                                    ->title('¡Advertencia!')
+                                    ->body($data[1])
+                                    ->danger()
+                                    ->send();
+                            } else {
+                                Notification::make()
+                                    ->title('Pago eliminado con éxito.')
+                                    ->success()
+                                    ->send();
+                            }
+                        } catch (QueryException $exception) {
+                            Notification::make()
+                                ->title('Error al eliminar pago.')
+                                ->body($exception->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    })
+                    ->requiresConfirmation()
+                    ->visible(fn (Pago $record): bool => $record->estado === 0),
             ])
             ->defaultSort('id', 'desc')
             ->bulkActions([

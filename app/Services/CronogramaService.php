@@ -122,20 +122,20 @@ class CronogramaService
                 throw $e;
             }
         }
-    public function eliminar(int $solicitudId): void
+    public function eliminar(int $contratoId): void
     {
-        $id = $solicitudId;
+        $id = $contratoId;
         Solicitud::findOrFail($id);
         try {
             DB::beginTransaction();
             DB::table('pago')->where('contrato_id', '=', $id )
                 ->update(['estado' => 1, 'user_audit_id' => Auth::user()->id, 'updated_at' => Carbon::now()]);
             /* Eliminar amortizaciones */
-            DB::table('amortizacion')->where('solicitud_id', '=', $id)->delete();
+            DB::table('amortizacion')->where('contrato_id', '=', $id)->delete();
             /* Eliminar cronograma */
-            DB::table('cronograma')->where('solicitud_id', '=', $id )->delete();
+            DB::table('cronograma')->where('contrato_id', '=', $id )->delete();
             /* Actualizar estado solicitud */
-            DB::table('solicitud')->where('solicitud_id', '=', $id )->update([
+            DB::table('contrato')->where('id', '=', $id )->update([
                 'estado_id' => null, 'user_audit_id' => Auth::user()->id, 'updated_at' => Carbon::now()
             ]);
             DB::commit();
