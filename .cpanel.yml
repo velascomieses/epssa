@@ -1,0 +1,44 @@
+deployment:
+  tasks:
+    # Definir las rutas
+    - export DEPLOY_PATH=/home/paraiso/intranet.funerariamello.com
+    - export APP_PATH=/home/paraiso/epssa
+
+    # Ir al directorio donde se encuentra el código
+    - cd /home/paraiso/repositories/epssa
+
+    # Instalar dependencias con Composer (sin las dev y con prefer-dist)
+    - /opt/cpanel/composer/bin/composer install --no-dev --prefer-dist --no-interaction
+
+    # Regenerar el autoload de Composer
+    - /opt/cpanel/composer/bin/composer dump-autoload
+
+    # Limpiar APP_PATH excepto storage y .env
+    - find $APP_PATH -mindepth 1 -maxdepth 1 ! -name 'storage' ! -name '.env' -exec rm -rf {} +
+
+    # Mover los archivos a la carpeta APP_PATH (fuera de intranet.funerariamello.com)
+    - mkdir -p $APP_PATH
+    - cp -r * $APP_PATH/
+
+    # Crear un enlace simbólico para apuntar la carpeta intranet.funerariamello.com a la carpeta public de Laravel
+    - rm -rf $DEPLOY_PATH # Borrar cualquier archivo/carpeta actual en intranet.funerariamello.com
+    - ln -s $APP_PATH/public $DEPLOY_PATH
+    - chmod -R 775 $APP_PATH/storage
+    - chmod -R 775 $APP_PATH/bootstrap/cache
+
+    # Descomprimir el archivo public/build.zip
+    # - unzip -o $APP_PATH/public/build.zip -d $APP_PATH/public
+
+    # Ejecutar migraciones
+    # php $APP_PATH/artisan migrate --force
+    - php $APP_PATH/artisan config:clear
+    # Cachear la configuración
+    - php $APP_PATH/artisan config:cache
+    # Limpias las rutas
+    - php $APP_PATH/artisan route:clear
+    # Cachear las rutas
+    - php $APP_PATH/artisan route:cache
+    # Cachear frontend assets
+    - php $APP_PATH/artisan filament:optimize
+    # Limpiar el caché de Filament
+    - php $APP_PATH/artisan filament:optimize-clear
