@@ -32,19 +32,53 @@
         <td>DNI</td>
         <td>{{ $beneficiario->persona->numero_documento }}</td>
     </tr>
+    <tr>
+        <td style="width: 15%">LUGAR FALLEC.</td>
+        <td colspan="3">{{ $contrato->lugar_fallecimiento }}</td>
+    </tr>
+    <tr>
+        <td>LUGAR SEPUL.</td>
+        <td colspan="3" >{{ $contrato->ubigeo?->nombre }}</td>
+    </tr>
+    <tr>
+        <td>DIR. VELAT.</td>
+        <td colspan="3" >{{ $contrato->direccion_velatorio }}</td>
+    </tr>
 </table>
-<table cellpadding="5" cellspacing="0" border="0" style="width: 100%;">
+&nbsp;<br />
+@php
+    $productoItem = \App\Models\ProductoItem::where('numero_serie', $contrato->numero_serie)->first();
+@endphp
+
+@if($productoItem)
+    @php
+        $atributos = $productoItem->producto->atributos->map(function($atributo) {
+            return $atributo->nombre . ': ' . $atributo->pivot->valor;
+        })->implode(' | ');
+    @endphp
+    <table cellpadding="3" cellspacing="0" border="0" >
+        <tbody>
+            <tr>
+                <td>CATEGORIA DEL SERVICIO: <span style="font-weight: bold;">{{ $contrato->categoria?->nombre }}</span></td>
+            </tr>
+            <tr>
+                <td>{{ $productoItem->producto->nombre }} {{ $atributos }}</td>
+            </tr>
+            <tr>
+                <td>{{ $productoItem->numero_serie }}</td>
+            </tr>
+        </tbody>
+    </table>
+@endif
+&nbsp;<br />
+<h4 style="text-align: center;" >DETALLE DEL CONTRATO</h4>
+<table cellpadding="3" cellspacing="0" border="0" >
     <thead>
         <tr>
-            <td colspan="2" style="background-color: #f0f0f0; padding: 8px; font-weight: bold; text-align: center;">
-                DETALLE DEL CONTRATO
-            </td>
-        </tr>
-        <tr>
-            <th style="width: 70%; text-align: left; padding: 8px; background-color: #e8e8e8; font-weight: bold;">
+            <th style="width: 70%; text-align: left; background-color: #e8e8e8; font-weight: bold;">
                 DESCRIPCIÓN
             </th>
-            <th style="width: 30%; text-align: center; padding: 8px; background-color: #e8e8e8; font-weight: bold;">
+            <th style="width: 30%; text-align: center; background-color: #e8e8e8; font-weight: bold;">
                 CANTIDAD
             </th>
         </tr>
@@ -52,20 +86,50 @@
     <tbody>
         @foreach($contrato->productos as $item)
             <tr>
-                <td style="text-align: left; padding: 6px; border: 1px solid #000;">
+                <td style="text-align: left;">
                     {{ $item->producto?->nombre }}
                 </td>
-                <td style="text-align: center; padding: 6px; border: 1px solid #000;">
+                <td style="text-align: center;">
                     {{ $item->cantidad }}
                 </td>
             </tr>
         @endforeach
     </tbody>
 </table>
-<h4>Cláusula: Forma de Pago y Consecuencias del Incumplimiento</h4>
+&nbsp;<br />
+<h4 style="font-weight: bold;" >CONDICIONES DE PAGO</h4>
+<table cellspacing="3">
+    <tbody>
+        <tr>
+            <td>TOTAL</td>
+            <td>{{ sprintf("%.2f", $contrato->total) }}</td>
+            <td>INICIAL</td>
+            <td>{{ sprintf("%.2f", $contrato->inicial) }}</td>
+            <td>DESCUENTO</td>
+            <td>{{ sprintf("%.2f", $contrato->descuento) }}</td>
+        </tr>
+        <tr>
+            <td>N° DE CUOTAS</td>
+            <td colspan="5">{{ $contrato->numero_cuotas }}</td>
+        </tr>
+    </tbody>
+</table>
+&nbsp;<br />
 <p>
-El servicio contratado se brinda bajo la modalidad de pago al contado. No obstante, de manera excepcional y
-únicamente a solicitud del Contratante, la empresa podrá aceptar pagos por adelantado.
+Siento el interviniente {{ $contrato->personal?->full_name }}, identificado con DNI N° {{ $contrato->personal?->numero_documento }},
+quien da conformidad al presente acto y es el responsable de la deuda detallada.
+</p>
+<h4>Cláusula: Forma de Pago y Consecuencias del Incumplimiento</h4>
+<p style="text-align: justify">
+El servicio contratado se brinda bajo la modalidad de pago al contado. No obstante, de manera excepcional y únicamente
+a solicitud del Contratante, la empresa podrá aceptar pagos por adelantado. En caso el Contratante no hubiera cancelado
+la totalidad del monto pactado por el servicio, se establece que la última cuota vencerá indefectiblemente a los cinco
+(05) días naturales posteriores al fallecimiento de la persona para quien se destinó el servicio fúnebre. Vencido dicho
+plazo sin haberse efectuado el pago total, y en aplicación de lo dispuesto por los artículos 1242° y 1243° del Código
+Civil, así como por los artículos 51° y 52° de la Ley Orgánica del Banco Central de Reserva del Perú, la deuda pendiente
+generará: intereses compensatorios, calculados a la tasa fijada por el Banco Central de Reserva del Perú (BCRP), aplicable
+desde el día siguiente del vencimiento; e intereses moratorios, equivalentes al cinco por ciento (5%) adicional, por
+cada mes o fracción aplicable, hasta la cancelación total de la deuda.
 </p>
 <h4>Cláusula Adicional: Condiciones de Pago en Caso de Atención por Seguros</h4>
 <p style="text-align: justify" >
@@ -85,4 +149,27 @@ según las tarifas vigentes y dentro de los plazos establecidos en el presente c
 declara conocer y aceptar que la responsabilidad final del pago recae sobre él, independientemente del resultado,
 demora, observación o contingencias que pudieran presentarse durante el trámite ante la entidad aseguradora.
 </p>
-
+&nbsp;<br />
+&nbsp;<br />
+<table cellpadding="3" border="0">
+    <tbody>
+        <tr>
+            <td style="width: 22%; text-align: center;">
+                &nbsp;<br />
+                REPRESENTANTE LEGAL
+            </td>
+            <td style="width: 35%; text-align: center;">
+                {{ $contrato->personal?->full_name }}<br />
+                INTERVINIENTE
+            </td>
+            <td style="width: 35%; text-align: center;">
+                {{ $contrato->rolTitular?->full_name }}<br />
+                CONTRATANTE
+            </td>
+            <td style="width: 8%; text-align: center;">
+                &nbsp;<br />
+                AVAL
+            </td>
+        </tr>
+    </tbody>
+</table>

@@ -26,7 +26,9 @@ class Contrato extends Model
         'oficina_id',
         'personal_id',
         'fecha_atencion',
-        'titular_id',
+        'lugar_fallecimiento',
+        'direccion_velatorio',
+        'ubigeo_id'
     ];
 
     public function titular()
@@ -71,7 +73,10 @@ class Contrato extends Model
     {
         return $this->hasMany(ContratoPersona::class, 'contrato_id', 'id');
     }
-
+    public function categoria()
+    {
+        return $this->belongsTo(Categoria::class, 'categoria_id', 'id');
+    }
     public function beneficiarios()
     {
         return $this->contratoPersonas()->where('rol_id', 3);
@@ -100,5 +105,10 @@ class Contrato extends Model
     public function notas()
     {
         return $this->hasMany(ContratoNota::class, 'contrato_id', 'id');
+    }
+
+    public function ubigeo()
+    {
+        return $this->belongsTo(Ubigeo::class, 'ubigeo_id', 'id');
     }
 }

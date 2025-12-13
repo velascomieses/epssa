@@ -12,6 +12,7 @@ use App\Models\Persona;
 use App\Models\Producto;
 use App\Models\Rol;
 use App\Models\TipoContrato;
+use App\Models\Ubigeo;
 use Awcodes\TableRepeater\Components\TableRepeater;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
@@ -96,7 +97,26 @@ class ContratoResource extends Resource
                                 "{$record->full_name}" .
                                 (!$record->estado ? ' (Inactivo)' : '')
                             )
-                            ->preload()
+                            ->preload(),
+                        TextInput::make('lugar_fallecimiento')
+                            ->label('Lugar de fallecimiento'),
+                        TextInput::make('direccion_velatorio')
+                            ->label('Dirección de velatorio'),
+                        Select::make('ubigeo_id')
+                            ->label('Lugar de sepultura')
+                            ->searchable()
+                            ->getSearchResultsUsing(function (string $search) {
+                                return Ubigeo::query()
+                                    ->distritos()
+                                    ->where('nombre', 'like', "%{$search}%")
+                                    ->limit(50)
+                                    ->get()
+                                    ->mapWithKeys(fn ($record) => [
+                                        $record->id => $record->full_name
+                                    ]);
+                            })
+                            ->getOptionLabelUsing(fn ($value) => Ubigeo::find($value)?->full_name),
+
                     ])
                 ->columns(3),
                 Fieldset::make('Financiamiento')

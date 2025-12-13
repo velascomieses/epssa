@@ -25,7 +25,7 @@ return [
     //    'creator'             => '', // PDF_CREATOR
     //    'author'              => '', // PDF_AUTHOR
     'header_title'        => "EPSSA S.A.C.", // PDF_HEADER_TITLE
-    'header_string'       => "JR. Leoncio Prado # 1802", // PDF_HEADER_STRING
+    'header_string'       => "JR. Leoncio Prado N° 1802 - Tarapoto | Tel. 042 525 524 Cel. 942 021 961 - 942 606 411", // PDF_HEADER_STRING
     //    'page_units'          => '', // PDF_UNIT
     'margin_header'       => 5, // PDF_MARGIN_HEADER
     'margin_footer'       => 10, // PDF_MARGIN_FOOTER

@@ -2,7 +2,8 @@
 
 namespace App\Pdf;
 use TCPDF;
-class RPT_TCPDF extends TCPDF
+class
+RPT_TCPDF extends TCPDF
 {
     public function __construct($orientation = 'P', $unit = 'mm', $format = 'A4', $unicode = true, $encoding = 'UTF-8', $diskcache = false) {
         parent::__construct($orientation, $unit, $format, $unicode, $encoding, $diskcache);
@@ -39,19 +40,23 @@ class RPT_TCPDF extends TCPDF
         $tagvs = array(
             'p' => array(
                 0 => array('h' => 0, 'n' => 0), // espaciado antes del párrafo
-                1 => array('h' => 0, 'n' => 0)  // espaciado después del párrafo
+                1 => array('h' => 0, 'n' => 0.5)  // espaciado después del párrafo
+            ),
+            'h3' => array(
+                0 => array('h' => 0, 'n' => 0),
+                1 => array('h' => 0, 'n' => 0.5)
             ),
             'h4' => array(
-                0 => array('h' => 0, 'n' => 0), // espaciado antes del párrafo
-                1 => array('h' => 0, 'n' => 0)  // espaciado después del párrafo
-            )
+                0 => array('h' => 0, 'n' => 0),
+                1 => array('h' => 0, 'n' => 0.5)
+            ),
         );
         $this->setHtmlVSpace($tagvs);
     }
     public function printHtml($content) {
         // add a new page
         $this->AddPage();
-        $this->SetFont('helvetica', '', 9);
+        $this->SetFont('helvetica', '', 8);
         $this->SetTextColor(50, 50, 50);
         $this->writeHTML($content, true, false, true, false, '');
     }
