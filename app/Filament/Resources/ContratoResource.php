@@ -337,8 +337,10 @@ class ContratoResource extends Resource
                     ->multiple()
                     ->relationship('contrato.categoria', 'nombre')
                     ->preload(),
-                TextColumn::make('oficina_id')->label('Oficina')
-                    ->formatStateUsing(fn ($record) => $record->oficina?->nombre),
+                SelectFilter::make('oficina_id')
+                    ->label('Oficina')
+                    ->multiple()
+                    ->relationship('oficina', 'nombre'),
                 Filter::make('contrato.fecha_contrato')
                     ->form([
                         DatePicker::make('created_from')
