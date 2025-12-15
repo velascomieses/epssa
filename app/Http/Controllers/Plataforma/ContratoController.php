@@ -16,6 +16,19 @@ class ContratoController extends Controller
         $pdf->printHtml($content);
         $pdf->Output('cronograma.pdf', 'I');
     }
+
+    public function verOtroPago($id)
+    {
+        // dd($id);
+        $contrato = Contrato::findOrFail($id);
+        $pagos = $contrato->pagos()
+            ->where('estado',0)
+            ->where('tipo_ingreso', 2)->get();
+        $content = view('reportes.contratos.otro_pago', compact('contrato', 'pagos'))->render();
+        $pdf = new RPT_TCPDF(config('tcpdf.page_orientation'), config('tcpdf.page_units'), config('tcpdf.page_format'),  true, config('tcpdf.unicode'), false);
+        $pdf->printHtml($content);
+        $pdf->Output('historial_otros_pagos.pdf', 'I');
+    }
     public function verHistorialPago($id)
     {
         $contrato = Contrato::findOrFail($id);

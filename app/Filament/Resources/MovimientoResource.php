@@ -51,8 +51,11 @@ class MovimientoResource extends Resource
                     ->label('Proveedor')
                     ->searchable()
                     ->getSearchResultsUsing(fn (string $search): array =>
-                    Persona::whereRaw("CONCAT_WS(' ', nombre, primer_apellido, segundo_apellido) LIKE ?", ["%{$search}%"])
-                        ->orWhere('numero_documento', 'like', "%{$search}%")
+                        Persona::where('es_proveedor', true)
+                        ->where(function ($query) use ($search) {
+                            $query->whereRaw("CONCAT_WS(' ', nombre, primer_apellido, segundo_apellido) LIKE ?", ["%{$search}%"])
+                                ->orWhere('numero_documento', 'like', "%{$search}%");
+                        })
                         ->get()
                         ->mapWithKeys(fn ($persona) => [$persona->id => $persona->full_name])
                         ->toArray()

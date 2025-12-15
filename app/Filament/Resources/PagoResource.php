@@ -27,6 +27,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -272,7 +273,6 @@ class PagoResource extends Resource
                 TextColumn::make('id')->label('ID')
                     ->searchable(),
                 TextColumn::make('fecha_emision')->label('Fecha')->date('d/m/Y'),
-                TextColumn::make('importe')->label('Importe'),
                 TextColumn::make('contrato_id')->label('Contrato'),
                 TextColumn::make('contrato.rolTitular.id')->label('Titular')
                     ->formatStateUsing(fn ($record) => $record->contrato?->rolTitular?->full_name)
@@ -282,6 +282,9 @@ class PagoResource extends Resource
                                 ->orWhere('numero_documento', $search);
                         });
                     }),
+                TextColumn::make('oficina_id')->label('Oficina')
+                    ->formatStateUsing(fn ($record) => $record->oficina?->nombre),
+                TextColumn::make('importe')->label('Importe'),
                 IconColumn::make('estado')
                     ->boolean()
                     ->trueIcon('heroicon-o-x-circle')
@@ -303,6 +306,44 @@ class PagoResource extends Resource
                         '0' => 'Activo',
                         '1' => 'Eliminado',
                     ]),
+                SelectFilter::make('oficina_id')
+                    ->label('Oficina')
+                    ->multiple()
+                    ->relationship('oficina', 'nombre'),
+                SelectFilter::make('producto_id')
+                    ->label('Producto')
+                    ->multiple()
+                    ->relationship('producto', 'nombre'),
+                Filter::make('fecha_emision')
+                    ->form([
+                        DatePicker::make('created_from')
+                            ->label('Desde'),
+                        DatePicker::make('created_until')
+                            ->label('Hasta'),
+                    ])
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if ($data['created_from'] ?? null) {
+                            $indicators[] = 'Desde: ' . \Carbon\Carbon::parse($data['created_from'])->format('d/m/Y');
+                        }
+
+                        if ($data['created_until'] ?? null) {
+                            $indicators[] = 'Hasta: ' . \Carbon\Carbon::parse($data['created_until'])->format('d/m/Y');
+                        }
+                        return $indicators;
+                    })
+                    ->query(function (Builder $query, array $data): Builder {
+                        $query = $query
+                            ->when(
+                                $data['created_from'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('fecha_emision', '>=', $date),
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn (Builder $query, $date): Builder => $query->whereDate('fecha_emision', '<=', $date),
+                            );
+                        return $query;
+                    })
             ])
             ->actions([
                 //Tables\Actions\EditAction::make(),

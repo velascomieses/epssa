@@ -70,11 +70,14 @@ class ManageMovimientos extends ManageRecords
                         ->label('Proveedor')
                         ->searchable()
                         ->getSearchResultsUsing(fn (string $search): array =>
-                            Persona::whereRaw("CONCAT_WS(' ', nombre, primer_apellido, segundo_apellido) LIKE ?", ["%{$search}%"])
-                                ->orWhere('numero_documento', 'like', "%{$search}%")
-                                ->get()
-                                ->mapWithKeys(fn ($persona) => [$persona->id => $persona->full_name])
-                                ->toArray()
+                            Persona::where('es_proveedor', true)
+                            ->where(function ($query) use ($search) {
+                                $query->whereRaw("CONCAT_WS(' ', nombre, primer_apellido, segundo_apellido) LIKE ?", ["%{$search}%"])
+                                    ->orWhere('numero_documento', 'like', "%{$search}%");
+                            })
+                            ->get()
+                            ->mapWithKeys(fn ($persona) => [$persona->id => $persona->full_name])
+                            ->toArray()
                         )
                         ->getOptionLabelFromRecordUsing(fn ($record) => "{$record->full_name}"),
                     Select::make('almacen_destino_id')

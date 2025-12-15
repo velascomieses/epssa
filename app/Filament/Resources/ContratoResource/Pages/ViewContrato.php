@@ -43,6 +43,11 @@ class ViewContrato extends ViewRecord
                     ->url(fn ($record) => route('contratos.rpt.historial.pago', ['id' => $record->id]))
                     ->icon('heroicon-o-document-text')
                     ->openUrlInNewTab(),
+                Actions\Action::make('verHistorialOtrosPagos')
+                    ->label('Historial de Otros Pagos')
+                    ->url(fn ($record) => route('contratos.rpt.historial.otros.pagos', ['id' => $record->id]))
+                    ->icon('heroicon-o-document-text')
+                    ->openUrlInNewTab(),
             ])
             ->label('Documentos')
             ->icon('heroicon-m-document-text')

@@ -25,6 +25,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -265,8 +266,11 @@ class ContratoResource extends Resource
                         Select::make('persona_convenio_id')
                             ->searchable()
                             ->getSearchResultsUsing(fn (string $search): array =>
-                            Persona::whereRaw("CONCAT_WS(' ', nombre, primer_apellido, segundo_apellido) LIKE ?", ["%{$search}%"])
-                                ->orWhere('numero_documento', 'like', "%{$search}%")
+                                Persona::where('es_convenio', true)
+                                ->where(function ($query) use ($search) {
+                                    $query->whereRaw("CONCAT_WS(' ', nombre, primer_apellido, segundo_apellido) LIKE ?", ["%{$search}%"])
+                                        ->orWhere('numero_documento', 'like', "%{$search}%");
+                                })
                                 ->get()
                                 ->mapWithKeys(fn ($persona) => [$persona->id => $persona->full_name])
                                 ->toArray()
@@ -328,6 +332,43 @@ class ContratoResource extends Resource
                     ->multiple()
                     ->relationship('contrato.tipoContrato', 'nombre')
                     ->preload(),
+                SelectFilter::make('contrato.categoria_id')
+                    ->label('Categoría')
+                    ->multiple()
+                    ->relationship('contrato.categoria', 'nombre')
+                    ->preload(),
+                TextColumn::make('oficina_id')->label('Oficina')
+                    ->formatStateUsing(fn ($record) => $record->oficina?->nombre),
+                Filter::make('contrato.fecha_contrato')
+                    ->form([
+                        DatePicker::make('created_from')
+                            ->label('Desde'),
+                        DatePicker::make('created_until')
+                            ->label('Hasta'),
+                    ])
+                    ->indicateUsing(function (array $data): array {
+                        $indicators = [];
+                        if ($data['created_from'] ?? null) {
+                            $indicators[] = 'Desde: ' . \Carbon\Carbon::parse($data['created_from'])->format('d/m/Y');
+                        }
+
+                        if ($data['created_until'] ?? null) {
+                            $indicators[] = 'Hasta: ' . \Carbon\Carbon::parse($data['created_until'])->format('d/m/Y');
+                        }
+                        return $indicators;
+                    })
+                    ->query(function (Builder $query, array $data): Builder {
+                        $query = $query
+                            ->when(
+                                $data['created_from'],
+                                fn (Builder $query, $date): Builder => $query->whereHas('contrato', fn ($q) => $q->whereDate('fecha_contrato', '>=', $date)),
+                            )
+                            ->when(
+                                $data['created_until'],
+                                fn (Builder $query, $date): Builder => $query->whereHas('contrato', fn ($q) => $q->whereDate('fecha_contrato', '<=', $date)),
+                            );
+                        return $query;
+                    })
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

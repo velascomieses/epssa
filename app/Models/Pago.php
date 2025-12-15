@@ -42,4 +42,8 @@ class Pago extends Model
     {
         return $this->belongsTo(User::class, 'user_audit_id', 'id');
     }
+    public function producto()
+    {
+        return $this->belongsTo(Producto::class, 'producto_id', 'id');
+    }
 }
