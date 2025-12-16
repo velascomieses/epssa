@@ -2,9 +2,12 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Exports\RiskPortfolioExporter;
 use App\Filament\Resources\ContratoResource;
 use App\Models\CarteraRiesgo;
+use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Tables;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -56,13 +59,13 @@ class RiskPortfolio extends BaseWidget
                     })
                     ->badge()
                     ->color('info'),
-//                ExportAction::make()
-//                    ->label('Exportar')
-//                    ->icon('heroicon-o-arrow-down-tray')
-//                    ->exporter(RiskPortfolioExporter::class)
-//                    ->formats([
-//                        ExportFormat::Xlsx,
-//                    ])
+                ExportAction::make()
+                    ->label('Exportar')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->exporter(RiskPortfolioExporter::class)
+                    ->formats([
+                        ExportFormat::Xlsx,
+                    ])
             ])
             ->query($query)
             ->columns([

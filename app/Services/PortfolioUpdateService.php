@@ -30,7 +30,7 @@ class PortfolioUpdateService
             CarteraRiesgo::query()->delete();
 
             Contrato::where('estado_id', 1)
-                ->with(['cronograma'])
+                ->with(['cronograma', 'rolTitular'])
                 ->whereHas('contratoPersonas', function ($query) {
                     $query->where('rol_id', 1);
                 })
@@ -67,7 +67,7 @@ class PortfolioUpdateService
                             'id' => Str::uuid(),
                             'contrato_id' => $contrato->id,
                             'fecha_contrato' => $contrato->fecha_contrato,
-                            'titular_id' => $contrato->titular_id,
+                            'titular_id' => $contrato->rolTitular->id,
                             'personal_id' => $contrato->personal_id,
                             'dias_atraso' => $diasAtraso,
                             'monto_capital' => $montoCapital,

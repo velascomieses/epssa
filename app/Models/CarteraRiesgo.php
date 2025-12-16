@@ -13,9 +13,9 @@ class CarteraRiesgo extends Model
 
     protected $fillable = [
         'id',
-        'solicitud_id',
+        'contrato_id',
         'titular_id',
-        'consejero_id',
+        'personal_id',
         'dias_atraso',
         'monto_capital',
         'monto_pendiente',
@@ -24,7 +24,7 @@ class CarteraRiesgo extends Model
         'categoria_riesgo',
         'total_contrato',
         'fecha_evaluacion',
-        'tipo_solicitud'
+        'tipo_contrato_id'
     ];
 
     protected $casts = [
@@ -34,5 +34,9 @@ class CarteraRiesgo extends Model
     public function titular()
     {
         return $this->belongsTo(Persona::class, 'titular_id', 'id');
+    }
+    public function personal()
+    {
+        return $this->belongsTo(Personal::class, 'personal_id', 'id');
     }
 }
