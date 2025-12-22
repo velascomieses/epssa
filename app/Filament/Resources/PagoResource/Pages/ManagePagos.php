@@ -23,9 +23,9 @@ class ManagePagos extends ManageRecords
                 ->createAnother(true)
                 ->using(function (array $data): ?Model {
                     try {
-                        //if (!Auth::user()->hasRole('admin')) {
+                        if (!Auth::user()->hasRole('admin')) {
                             $data['fecha_calculo'] = $data['fecha_emision'];
-                        //}
+                        }
                         DB::beginTransaction();
                         // ( contrato_id INT, fecha_emision DATE, fecha_calculo DATE, moneda_id INT, recibo VARCHAR(255), personal_id INT, importe DECIMAL(16,2), tipo_comprobante_id INT, operacion INT, oficina_id INT, tipo_ingreso INT, referencia TEXT, OUT pago_id INT
                         $result = DB::select('CALL `sp_payments`( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, @id )', [

@@ -31,6 +31,7 @@ return new class extends Migration
             $table->foreign('contrato_id')->references('id')->on('contrato');
             $table->foreign('titular_id')->references('id')->on('persona');
             $table->foreign('personal_id')->references('id')->on('personal');
+            $table->foreign('tipo_contrato_id')->references('id')->on('tipo_contrato');
         });
     }
 

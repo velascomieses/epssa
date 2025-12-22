@@ -11,23 +11,19 @@ use Illuminate\Support\Carbon;
 
 class ContractsExporter extends Exporter
 {
-    protected static ?string $model = ItemPersona::class;
+    protected static ?string $model = ContratoPersona::class;
 
     public static function getColumns(): array
     {
         return [
             //
-            ExportColumn::make('solicitud.solicitud_id')->label('ID'),
-            ExportColumn::make('solicitud.modificacion')->label('Fecha')
-            ->state(fn (ItemPersona $record): ?string => Carbon::parse($record->solicitud?->modificacion)->format('d/m/Y')),
-            ExportColumn::make('persona.nombres')->label('Nombres y apellidos')
-            ->formatStateUsing(fn (ItemPersona $record): ?string => $record->persona?->full_name),
-            ExportColumn::make('solicitud.tipo_solicitud')->label('Tipo')
-            ->formatStateUsing(fn (ItemPersona $record): ?string => $record->solicitud?->tipo_solicitud === 'F' ? 'N. Futura' : 'N. Inmediata'),
-            ExportColumn::make('solicitud.estado')->label('Estado')
-            ->formatStateUsing(fn (ItemPersona $record): ?string => $record->solicitud?->estado->descripcion),
-            ExportColumn::make('solicitud.itemSepulturas')->label('Servicio sepultura')
-            ->formatStateUsing(fn (ItemPersona $record): ?string => $record->solicitud?->itemSepulturas?->pluck('servicioSepultura.descripcion')->join(', ')),
+            ExportColumn::make('contrato.id')->label('ID'),
+            ExportColumn::make('contrato.fecha_contrato')->label('Fecha')
+            ->state(fn ($record): ?string => Carbon::parse($record->contrato?->fecha_contrato)->format('d/m/Y')),
+            ExportColumn::make('persona.nombre')->label('Nombres y apellidos')
+            ->formatStateUsing(fn ($record): ?string => $record->persona?->full_name),
+            ExportColumn::make('contrato.tipoContrato.nombre')->label('Tipo'),
+            ExportColumn::make('contrato.estado.nombre')->label('Estado'),
         ];
     }
 

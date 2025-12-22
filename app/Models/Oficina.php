@@ -8,4 +8,6 @@ class Oficina extends Model
 {
     //
     protected $table = 'oficina';
+    protected $fillable = ['nombre'];
+    public  $timestamps = false;
 }

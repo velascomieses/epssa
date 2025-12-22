@@ -2,10 +2,13 @@
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Exports\PaymentsSummaryExporter;
 use App\Models\Producto;
 use App\Models\Pago;
 use App\Models\ResumenPago;
+use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Tables;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -25,6 +28,16 @@ class PaymentsSummaryByPeriodAndConcept extends BaseWidget
     {
         return $table
             ->query( ResumenPago::with('producto') )
+            ->headerActions([
+                ExportAction::make()
+                    ->label('Exportar')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->exporter(PaymentsSummaryExporter::class)
+                    ->formats([
+                        ExportFormat::Xlsx,
+                    ])
+                    ->modalHeading('Exportar resumen de pagos')
+            ])
             ->columns([
                 TextColumn::make('year')->label('Año')->sortable(),
                 TextColumn::make('month_name')->label('Mes')->sortable(),
@@ -42,6 +55,7 @@ class PaymentsSummaryByPeriodAndConcept extends BaseWidget
             ->filters([
                 SelectFilter::make('producto_id')
                     ->label('Producto')
+                    ->searchable()
                     ->options(function () {
                         return [0 => 'Pagos por cuotas'] +
                             Producto::all()->pluck('nombre', 'id')->toArray();

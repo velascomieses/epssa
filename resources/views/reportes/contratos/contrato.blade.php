@@ -116,7 +116,8 @@
 </table>
 &nbsp;<br />
 <p>
-Siento el interviniente {{ $contrato->personal?->full_name }}, identificado con DNI N° {{ $contrato->personal?->numero_documento }},
+Siento el interviniente {{ $contrato->personal?->full_name }}, identificado con
+    {{ $contrato->personal?->tipoDocumentoIdentidad?->nombre }} N° {{ $contrato->personal?->numero_documento }},
 quien da conformidad al presente acto y es el responsable de la deuda detallada.
 </p>
 <h4>Cláusula: Forma de Pago y Consecuencias del Incumplimiento</h4>
@@ -149,6 +150,19 @@ según las tarifas vigentes y dentro de los plazos establecidos en el presente c
 declara conocer y aceptar que la responsabilidad final del pago recae sobre él, independientemente del resultado,
 demora, observación o contingencias que pudieran presentarse durante el trámite ante la entidad aseguradora.
 </p>
+<h4>Cláusula: Responsabilidad por daños o pérdida de bienes</h4>
+<p style="text-align: justify">En caso de daño, deterioro o pérdida total o parcial de la capilla ardiente y/o de cualquiera de los materiales,
+    equipos o accesorios proporcionados por LA EMPRESA para el armado y desarrollo del velatorio, ocasionados por acción
+    u omisión del EL CONTRATANTE, sus familiares, invitados o terceros bajo su responsabilidad, EL CONTRATANTE se obliga
+    a asumir íntegramente los costos de reparación o reposición del bien afectado, según corresponda, de acuerdo con la
+    valorización que determine LA EMPRESA.</p>
+<h4>Cláusula: Pagos no autorizados al personal</h4>
+<p style="text-align: justify" >LA EMPRESA no se hará responsable por pagos, dádivas, propinas o cualquier otro desembolso
+    económico que EL CONTRATANTE, sus familiares o terceros realicen de manera directa al personal operativo o administrativo,
+    cuando dichos pagos no se encuentren expresamente contemplados en el presente contrato y/o no cuenten con el respectivo
+    comprobante de pago emitido por LA EMPRESA.</p>
+<p>Cualquier pago efectuado sin la autorización previa y escrita de LA EMPRESA será considerado ajeno al servicio
+    contratado, no generando derecho a reembolso, descuento, compensación ni reclamo alguno contra LA EMPRESA.</p>
 &nbsp;<br />
 &nbsp;<br />
 <table cellpadding="3" border="0">

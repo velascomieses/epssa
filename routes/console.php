@@ -9,3 +9,4 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 Schedule::command('portfolio:update')->dailyAt('00:01');
 Schedule::command('app:clear-filament-exports')->daily();
+Schedule::command('queue:work --stop-when-empty')->everyMinute()->withoutOverlapping();

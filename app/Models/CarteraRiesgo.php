@@ -39,4 +39,9 @@ class CarteraRiesgo extends Model
     {
         return $this->belongsTo(Personal::class, 'personal_id', 'id');
     }
+
+    public function tipoContrato()
+    {
+        return $this->belongsTo(TipoContrato::class, 'tipo_contrato_id', 'id');
+    }
 }

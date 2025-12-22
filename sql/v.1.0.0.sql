@@ -59,6 +59,15 @@ ALTER TABLE `contrato` DROP INDEX `fk_contrato_personal_registro_id_idx` ;
 ALTER TABLE `contrato` DROP FOREIGN KEY `fk_contrato_titular_id`;
 ALTER TABLE `contrato` DROP COLUMN `personal_registro_id`, DROP COLUMN `titular_id`, DROP INDEX `fk_contrato_titular_id_idx` ;
 ALTER TABLE contrato ADD COLUMN lugar_fallecimiento VARCHAR(255) NULL AFTER observacion, ADD COLUMN direccion_velatorio VARCHAR(255) NULL AFTER lugar_fallecimiento;
+ALTER TABLE `convenio` DROP FOREIGN KEY `fk_convenio_persona_id`;
+ALTER TABLE `convenio` DROP COLUMN `servicio_mejorado`, CHANGE COLUMN `persona_convenio_id` `persona_id` INT(11) NULL DEFAULT NULL ;
+ALTER TABLE `convenio` ADD CONSTRAINT `fk_convenio_persona_id` FOREIGN KEY (`persona_id`) REFERENCES `persona` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+ALTER TABLE `personal` DROP COLUMN user_id;
+ALTER TABLE `personal` DROP FOREIGN KEY `fk_personal_oficina_id`; 
+ALTER TABLE `personal` DROP INDEX `fk_personal_oficina_id_idx` ;
+ALTER TABLE `personal` DROP COLUMN oficina_id;
+-- 
+ALTER TABLE `pago` DROP COLUMN anulado;
 -- DROP TABLES
 DROP TABLE IF EXISTS certificado_defuncion;
 DROP TABLE IF EXISTS causa_def;
@@ -76,6 +85,7 @@ DROP TABLE IF EXISTS tipo_telefono;
 DROP TABLE IF EXISTS persona_juridica;
 DROP TABLE IF EXISTS tipo_via;
 DROP TABLE IF EXISTS persona_natural;
+DROP TABLE IF EXISTS planilla_ingreso;
 -- 
 DROP PROCEDURE IF EXISTS sp_cronograma_vigente;
 DROP PROCEDURE IF EXISTS sp_pago;

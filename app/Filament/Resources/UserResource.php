@@ -7,6 +7,7 @@ use App\Filament\Resources\UserResource\RelationManagers;
 use App\Models\User;
 use Filament\Forms;
 use Filament\Forms\Components\CheckboxList;
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Notifications\Notification;
@@ -15,6 +16,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Database\QueryException;
 use Spatie\Permission\Models\Role;
@@ -50,6 +52,23 @@ class UserResource extends Resource
                     ->dehydrateStateUsing(fn ($state) => $state ? bcrypt($state) : null)
                     ->dehydrated(fn ($state) => filled($state))
                     ->label('Password'),
+                Select::make('personal_id')
+                    ->label('Personal')
+                    ->searchable()
+                    ->required()
+                    ->relationship(
+                        name: 'personal',
+                        modifyQueryUsing: fn (Builder $query, $record) =>
+                        $query->where('estado', true)
+                            ->when($record, function ($query) use ($record) {
+                                return $query->orWhere('id', $record->personal_id);
+                            })
+                    )
+                    ->getOptionLabelFromRecordUsing(fn (Model $record) =>
+                        "{$record->full_name}" .
+                        (!$record->estado ? ' (Inactivo)' : '')
+                    )
+                    ->preload(),
                 CheckboxList::make('roles')
                     ->label('Roles')
                     ->relationship('roles', 'name')
@@ -70,9 +89,9 @@ class UserResource extends Resource
                 TextColumn::make('email_verified_at')
                     ->dateTime()
                     ->sortable(),
-                TextColumn::make('personal.nombres')
+                TextColumn::make('personal.nombre')
                     ->label('Personal')
-                    ->formatStateUsing(fn($record) => $record->personal?->full_name ?? 'N/A')
+                    ->formatStateUsing(fn($record) => $record->personal?->full_name)
                     ->sortable(),
                 TextColumn::make('roles.name')
                     ->label('Roles')

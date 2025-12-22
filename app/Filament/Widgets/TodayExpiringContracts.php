@@ -45,7 +45,7 @@ class TodayExpiringContracts extends BaseWidget
                     ->distinct()
             )
             ->columns([
-                TextColumn::make('solicitud_id')
+                TextColumn::make('id')
                     ->label('Código')
                     ->sortable()
                     ->searchable()
@@ -61,7 +61,7 @@ class TodayExpiringContracts extends BaseWidget
                 TextColumn::make('rolTitular')
                     ->label('Titular')
                     ->formatStateUsing(fn ($record) => $record->rolTitular->full_name)
-                    ->description( fn($record) => "{$record->rolTitular->telefono} | {$record->rolTitular->direccion1}"),
+                    ->description( fn($record) => "{$record->rolTitular->telefono} | {$record->rolTitular->direccion}"),
                 TextColumn::make('cuotas_vencidas')
                     ->label('Cuotas vencidas')
                     ->sortable(),

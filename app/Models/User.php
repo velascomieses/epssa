@@ -5,6 +5,7 @@ namespace App\Models;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
@@ -23,6 +24,7 @@ class User extends Authenticatable implements FilamentUser
         'name',
         'email',
         'password',
+        'personal_id'
     ];
 
     /**
@@ -48,6 +50,10 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
+    public function personal(): BelongsTo
+    {
+        return $this->belongsTo(Personal::class, 'personal_id', 'id');
+    }
     public function canAccessPanel(Panel $panel): bool
     {
         // return $this->hasVerifiedEmail();

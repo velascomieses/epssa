@@ -62,7 +62,9 @@ class ViewContrato extends ViewRecord
                     ->color('danger')
                     ->visible(fn(Contrato $record): bool =>
                         !empty($record->numero_serie) &&
-                        $record->productos()->whereHas('producto', fn($q) => $q->where('es_serializado', true))->exists()
+                        ProductoItem::where('numero_serie', $record->numero_serie)
+                            ->where('estado', 'DISPONIBLE')
+                            ->exists()
                     )
                     ->action(function (Contrato $record) {
                         $productoItem = ProductoItem::where('numero_serie', $record->numero_serie)

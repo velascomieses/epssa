@@ -18,9 +18,9 @@ class PaymentsSummaryExporter extends Exporter
                 ->label('Año'),
             ExportColumn::make('month_name')
                 ->label('Mes'),
-            ExportColumn::make('concepto.descripcion')
+            ExportColumn::make('producto.nombre')
                 ->label('Concepto')
-                ->formatStateUsing(fn (ResumenPago $record): ?string => $record->concepto_id == 0 ? 'Pago por cuotas' : $record->concepto?->descripcion),
+                ->formatStateUsing(fn (ResumenPago $record): ?string => $record->producto_id == 0 ? 'Pago por cuotas' : $record->producto?->nombre),
             ExportColumn::make('total')
                 ->label('Total'),
         ];

@@ -46,7 +46,6 @@ class ProductoResource extends Resource
                     ->headers([
                         Header::make('atributo_id')->label('Atributo'),
                         Header::make('valor')->label('Valor'),
-
                     ])
                     ->relationship('productoAtributos')
                     ->schema([
@@ -63,6 +62,7 @@ class ProductoResource extends Resource
                             ->maxLength(255),
                     ])
                     ->defaultItems(0)
+                    ->columnSpanFull()
                     ->addActionLabel('Agregar atributo')
                     ->itemLabel(fn (array $state): ?string =>
                         \App\Models\Atributo::find($state['atributo_id'])?->nombre ?? 'Nuevo atributo'
@@ -115,9 +115,9 @@ class ProductoResource extends Resource
                     ->requiresConfirmation(),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+//                Tables\Actions\BulkActionGroup::make([
+//                    Tables\Actions\DeleteBulkAction::make(),
+//                ]),
             ]);
     }
 

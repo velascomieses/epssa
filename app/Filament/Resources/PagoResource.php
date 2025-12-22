@@ -2,6 +2,9 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Actions\CustomExportAction;
+use App\Filament\Exports\PaymentsExporter;
+use App\Filament\Jobs\PaymentsCreateXlsxFile;
 use App\Filament\Resources\PagoResource\Pages;
 use App\Filament\Resources\PagoResource\RelationManagers;
 use App\Models\ContratoPersona;
@@ -12,6 +15,7 @@ use App\Models\TipoComprobante;
 use App\Services\CronogramaService;
 use Awcodes\TableRepeater\Components\TableRepeater;
 use Awcodes\TableRepeater\Header;
+use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Forms;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\DatePicker;
@@ -60,14 +64,14 @@ class PagoResource extends Resource
                         $set('cronograma_actual', null);
                         $set('deuda_total', 0);
                         // Si no es admin, sincronizar fecha_calculo con fecha_emision
-                        //if (!Auth::user()->hasRole('admin')) {
+                        if (!Auth::user()->hasRole('admin')) {
                             $set('fecha_calculo', $state);
-                        //}
+                        }
                     }),
                 DatePicker::make('fecha_calculo')
                     ->label('Fecha de calculo')
                     ->rules(['required', 'date'])
-                    // ->visible(fn(Get $get): bool => Auth::user()->hasRole('admin'))
+                    ->visible(fn(Get $get): bool => Auth::user()->hasRole('admin'))
                     ->afterStateUpdated(function (Get $get, Set $set, $state) {
                         // Limpiar cronograma cuando cambie la fecha
                         $set('cronograma_actual', null);
@@ -269,6 +273,17 @@ class PagoResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->headerActions([
+                CustomExportAction::make()
+                    ->label('Exportar')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->exporter(PaymentsExporter::class)
+                    ->customXlsxJob(PaymentsCreateXlsxFile::class)
+                    ->formats([
+                        ExportFormat::Xlsx,
+                    ])
+                    ->maxRows(25000)
+            ])
             ->columns([
                 TextColumn::make('id')->label('ID')
                     ->searchable(),
@@ -311,9 +326,7 @@ class PagoResource extends Resource
                     ->multiple()
                     ->relationship('oficina', 'nombre'),
                 SelectFilter::make('producto_id')
-                    ->label('Producto')
-                    ->multiple()
-                    ->relationship('producto', 'nombre'),
+                    ->label('Producto'),
                 Filter::make('fecha_emision')
                     ->form([
                         DatePicker::make('created_from')

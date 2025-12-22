@@ -7,11 +7,15 @@ use App\Filament\Resources\AtributoResource\RelationManagers;
 use App\Models\Atributo;
 use Filament\Forms;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\QueryException;
 
 class AtributoResource extends Resource
 {
@@ -42,17 +46,19 @@ class AtributoResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('nombre')
+                TextColumn::make('id')
+                    ->label('ID'),
+                TextColumn::make('nombre')
                     ->searchable(),
-                Tables\Columns\TextColumn::make('tipo')
+                TextColumn::make('tipo')
                     ->searchable(),
-                Tables\Columns\IconColumn::make('es_visible')
+                IconColumn::make('es_visible')
                     ->boolean(),
-                Tables\Columns\TextColumn::make('created_at')
+                TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
-                Tables\Columns\TextColumn::make('updated_at')
+                TextColumn::make('updated_at')
                     ->dateTime()
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
@@ -62,12 +68,31 @@ class AtributoResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Eliminar')
+                    ->icon('heroicon-o-trash')
+                    ->action(function ($record) {
+                        try {
+                            $record->delete();
+                            Notification::make()
+                                ->title('Registro eliminado con éxito.')
+                                ->success()
+                                ->send();
+                        } catch (QueryException $exception) {
+                            Notification::make()
+                                ->title('Error al eliminar.')
+                                ->body('No se puede eliminar este registro porque está relacionado con otros datos.')
+                                ->danger()
+                                ->send();
+                        }
+                    })
+                    ->requiresConfirmation()
+                    ->color('danger'),
             ])
             ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make(),
-                ]),
+//                Tables\Actions\BulkActionGroup::make([
+//                    Tables\Actions\DeleteBulkAction::make(),
+//                ]),
             ]);
     }
 

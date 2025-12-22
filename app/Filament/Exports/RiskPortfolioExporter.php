@@ -20,7 +20,8 @@ class RiskPortfolioExporter extends Exporter
             ExportColumn::make('fecha_contrato')
                 ->label('Fecha de contrato'),
             ExportColumn::make('tipo_contrato_id')
-                ->label('Tipo de contrato'),
+                ->label('Tipo de contrato')
+                ->formatStateUsing(fn($record) => $record->tipoContrato?->nombre),
             ExportColumn::make('titular.id')
                 ->label('Titular')
                 ->formatStateUsing(fn (CarteraRiesgo $record) => $record->titular?->full_name),

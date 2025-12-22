@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources;
 
+use App\Filament\Exports\ContractsExporter;
 use App\Filament\Resources\ContratoResource\Pages;
 use App\Filament\Resources\ContratoResource\RelationManagers;
 use App\Models\Categoria;
@@ -14,6 +15,7 @@ use App\Models\Rol;
 use App\Models\TipoContrato;
 use App\Models\Ubigeo;
 use Awcodes\TableRepeater\Components\TableRepeater;
+use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Forms;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\DateTimePicker;
@@ -24,6 +26,7 @@ use Filament\Forms\Components\Toggle;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
+use Filament\Tables\Actions\ExportAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
@@ -263,7 +266,7 @@ class ContratoResource extends Resource
                     ])
                     ->relationship('convenios') // Define la relación
                     ->schema([
-                        Select::make('persona_convenio_id')
+                        Select::make('persona_id')
                             ->searchable()
                             ->getSearchResultsUsing(fn (string $search): array =>
                                 Persona::where('es_convenio', true)
@@ -288,6 +291,13 @@ class ContratoResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->headerActions([
+                ExportAction::make()
+                    ->label('Exportar')
+                    ->icon('heroicon-o-arrow-down-tray')
+                    ->exporter(ContractsExporter::class)
+                    ->formats([ExportFormat::Xlsx])
+            ])
             ->columns([
                 TextColumn::make('contrato_id')->searchable()->label('ID'),
                 TextColumn::make('contrato.fecha_contrato')->label('Fecha')->date('d/m/Y'),

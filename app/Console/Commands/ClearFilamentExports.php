@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Facades\Storage;
 
 class ClearFilamentExports extends Command
 {
@@ -18,13 +19,18 @@ class ClearFilamentExports extends Command
      *
      * @var string
      */
-    protected $description = 'Command description';
+    protected $description = 'Clear all Filament export files';
 
     /**
      * Execute the console command.
      */
     public function handle()
     {
-        //
+        if (Storage::directoryExists('filament_exports')) {
+            Storage::deleteDirectory('filament_exports');
+            $this->info('✅ Filament exports directory cleared successfully.');
+        } else {
+            $this->info('⚠️ Filament exports directory does not exist.');
+        }
     }
 }

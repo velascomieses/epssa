@@ -66,6 +66,7 @@ class RiskPortfolio extends BaseWidget
                     ->formats([
                         ExportFormat::Xlsx,
                     ])
+                    ->maxRows(25000)
             ])
             ->query($query)
             ->columns([
@@ -82,7 +83,8 @@ class RiskPortfolio extends BaseWidget
                     ->label('Fecha contrato')
                     ->date('d/m/Y'),
                 TextColumn::make('tipo_contrato_id')
-                    ->label('Tipo'),
+                    ->label('Tipo')
+                    ->formatStateUsing(fn($record)=> $record->tipoContrato->nombre),
                 TextColumn::make('titular_id')
                     ->label('Titular')
                     ->searchable(query: function (Builder $query, string $search): Builder {

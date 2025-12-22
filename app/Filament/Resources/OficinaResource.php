@@ -8,12 +8,14 @@ use App\Models\Oficina;
 use Filament\Forms;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
+use Filament\Notifications\Notification;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Illuminate\Database\QueryException;
 
 class OficinaResource extends Resource
 {
@@ -49,7 +51,26 @@ class OficinaResource extends Resource
             ])
             ->actions([
                 Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
+                Tables\Actions\DeleteAction::make()
+                    ->label('Eliminar')
+                    ->icon('heroicon-o-trash')
+                    ->action(function ($record) {
+                        try {
+                            $record->delete();
+                            Notification::make()
+                                ->title('Registro eliminado con éxito.')
+                                ->success()
+                                ->send();
+                        } catch (QueryException $exception) {
+                            Notification::make()
+                                ->title('Error al eliminar.')
+                                ->body('No se puede eliminar este registro porque está relacionado con otros datos.')
+                                ->danger()
+                                ->send();
+                        }
+                    })
+                    ->requiresConfirmation()
+                    ->color('danger'),
             ])
             ->bulkActions([
 //                Tables\Actions\BulkActionGroup::make([

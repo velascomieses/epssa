@@ -54,7 +54,7 @@
     </tbody>
     <tfoot>
     <tr>
-        <td colspan="4" style="text-align: right;">TOTALES</td>
+        <td colspan="5" style="text-align: right;">TOTALES</td>
         <td>{{ sprintf("%.2f",$total_importe) }}</td>
     </tr>
     </tfoot>

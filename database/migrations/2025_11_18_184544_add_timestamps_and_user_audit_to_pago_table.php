@@ -35,6 +35,8 @@ return new class extends Migration
                 SET p.producto_id = pp.producto_id
                 WHERE p.tipo_ingreso = 2
             ');
+        // Eliminar tabla pago_producto
+        Schema::dropIfExists('pago_producto');
     }
 
     /**

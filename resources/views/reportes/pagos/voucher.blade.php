@@ -50,6 +50,10 @@
         <td colspan="2">=======================================</td>
     </tr>
     <tr>
+        <td>Concepto</td>
+        <td>{{ $pago->producto?->nombre }}</td>
+    </tr>
+    <tr>
         <td>Importe</td>
         <td>{{$pago->importe}}</td>
     </tr>

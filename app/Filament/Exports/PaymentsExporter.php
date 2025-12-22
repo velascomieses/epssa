@@ -15,19 +15,25 @@ class PaymentsExporter extends Exporter
     public static function getColumns(): array
     {
         return [
-            ExportColumn::make('pago_id')
+            ExportColumn::make('id')
                 ->label('ID'),
-            ExportColumn::make('num_recibo')
+            ExportColumn::make('recibo')
                 ->label('N° Recibo'),
-            ExportColumn::make('fecha')
+            ExportColumn::make('oficina')
+                ->label('Oficina')
+                ->formatStateUsing(fn (Pago $record): ?string => $record->oficina?->nombre),
+            ExportColumn::make('fecha_emision')
                 ->label('Fecha de pago')
-                ->state(fn (Pago $record): ?string => Carbon::parse($record->fecha)->format('d/m/Y')),
-            ExportColumn::make('persona.nombres')
+                ->state(fn (Pago $record): ?string => Carbon::parse($record->fecha_emision)->format('d/m/Y')),
+            ExportColumn::make('contrato.rolTitular.id')
                 ->label('Titular')
-                ->formatStateUsing(fn (Pago $record): ?string => $record->persona?->full_name),
-            ExportColumn::make('personalCobranza.nombres')
-                ->label('Personal de cobranza')
-                ->formatStateUsing(fn (Pago $record): ?string => $record->personalCobranza?->full_name),
+                ->formatStateUsing(fn (Pago $record): ?string => $record->contrato?->rolTitular?->full_name),
+            ExportColumn::make('medioPago.id')
+                ->label('Medio de pago')
+                ->formatStateUsing(fn (Pago $record): ?string => $record->medioPago?->nombre),
+            ExportColumn::make('user.id')
+                ->label('User')
+                ->formatStateUsing(fn (Pago $record): ?string => $record->user?->name),
             ExportColumn::make('importe')
                 ->label('Importe'),
         ];
