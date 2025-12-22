@@ -41,7 +41,6 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Closure;
 use Illuminate\Support\Str;
-
 class PagoResource extends Resource
 {
     protected static ?string $model = Pago::class;
@@ -364,6 +363,14 @@ class PagoResource extends Resource
                     ->icon('heroicon-o-information-circle')
                     ->hiddenLabel(true)
                     ->tooltip('Actualizar pago')
+                    ->mountUsing(function(Form $form, Pago $record) {
+                        $form->fill([
+                            'numero_operacion' => $record->numero_operacion,
+                            'fecha_operacion' => $record->fecha_operacion,
+                            'destino_pago_id' => $record->destino_pago_id,
+                            'voucher' => $record->voucher_path,
+                        ]);
+                    })
                     ->form([
                         TextInput::make('numero_operacion')
                             ->label('N° operación')
@@ -371,7 +378,7 @@ class PagoResource extends Resource
                         DateTimePicker::make('fecha_operacion')
                             ->label('Fecha operación')
                             ->required(),
-                        Select::make('destino_pago')
+                        Select::make('destino_pago_id')
                             ->label('Destino pago')
                             ->options(DestinoPago::all()->pluck('nombre', 'id'))
                             ->searchable()
@@ -379,29 +386,37 @@ class PagoResource extends Resource
                         FileUpload::make('voucher')
                             ->label('Voucher')
                             ->directory('pagos/vouchers')
+                            ->disk('public')
                             ->acceptedFileTypes(['image/*', 'application/pdf'])
                             ->maxSize(2048)
                             ->required()
-                            ->storeFiles(false),
+                            ->storeFiles(false)
+                            ->default(fn ($record) => $record?->voucher_path),
                     ])
                     ->action(function (array $data, Pago $record): void {
                         $record->numero_operacion = $data['numero_operacion'];
                         $record->fecha_operacion = $data['fecha_operacion'];
-                        $record->destino_pago_id = $data['destino_pago'];
+                        $record->destino_pago_id = $data['destino_pago_id'];
                         $file = $data['voucher'];
 
-                        // Generar nombre personalizado
-                        $fileName = sprintf(
-                            'pago_%s_%s.%s',
-                            $record->id,
-                            now()->format('YmdHis'),
-                            $file->getClientOriginalExtension()
-                        );
-                        // Guardar con nombre personalizado
-                        $filePath = $file->storeAs('pagos/vouchers', $fileName, 'public');
-
+                        // Si viene un UploadedFile (usuario subió uno nuevo)
+                        if ($file instanceof \Illuminate\Http\UploadedFile) {
+                            $fileName = sprintf(
+                                'pago_%s_%s.%s',
+                                $record->id,
+                                now()->format('YmdHis'),
+                                $file->getClientOriginalExtension()
+                            );
+                            $filePath = $file->storeAs('pagos/vouchers', $fileName, 'public');
+                            $record->voucher_path = $filePath;
+                        }
+                        // Si viene una cadena, es la ruta existente y la dejamos tal cual
+                        elseif (is_string($file) && $file !== '') {
+                            $record->voucher_path = $file;
+                        }
                         $record->save();
-                    }),
+                    })
+                    ->modalHeading('Actualizar información del pago'),
                 Tables\Actions\Action::make('printVoucher')
                     ->icon('heroicon-o-printer')
                     ->hiddenLabel(true)

@@ -23,7 +23,8 @@ class Pago extends Model
         'estado',
         'referencia',
         'tipo_ingreso',
-        'user_audit_id'
+        'user_audit_id',
+        'voucher_path',
     ];
 
     public function contrato() {

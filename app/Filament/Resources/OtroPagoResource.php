@@ -5,6 +5,7 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\OtroPagoResource\Pages;
 use App\Filament\Resources\OtroPagoResource\RelationManagers;
 use App\Models\ContratoPersona;
+use App\Models\DestinoPago;
 use App\Models\Pago;
 use App\Models\Producto;
 use App\Models\TipoComprobante;
@@ -14,6 +15,8 @@ use Awcodes\TableRepeater\Header;
 use Filament\Forms;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\DatePicker;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -232,6 +235,64 @@ class OtroPagoResource extends Resource
                     })
             ])
             ->actions([
+                Tables\Actions\Action::make('updatePay')
+                    ->icon('heroicon-o-information-circle')
+                    ->hiddenLabel(true)
+                    ->tooltip('Actualizar pago')
+                    ->mountUsing(function(Form $form, Pago $record) {
+                        $form->fill([
+                            'numero_operacion' => $record->numero_operacion,
+                            'fecha_operacion' => $record->fecha_operacion,
+                            'destino_pago_id' => $record->destino_pago_id,
+                            'voucher' => $record->voucher_path,
+                        ]);
+                    })
+                    ->form([
+                        TextInput::make('numero_operacion')
+                            ->label('N° operación')
+                            ->required(),
+                        DateTimePicker::make('fecha_operacion')
+                            ->label('Fecha operación')
+                            ->required(),
+                        Select::make('destino_pago_id')
+                            ->label('Destino pago')
+                            ->options(DestinoPago::all()->pluck('nombre', 'id'))
+                            ->searchable()
+                            ->required(),
+                        FileUpload::make('voucher')
+                            ->label('Voucher')
+                            ->directory('pagos/vouchers')
+                            ->disk('public')
+                            ->acceptedFileTypes(['image/*', 'application/pdf'])
+                            ->maxSize(2048)
+                            ->required()
+                            ->storeFiles(false)
+                            ->default(fn ($record) => $record?->voucher_path),
+                    ])
+                    ->action(function (array $data, Pago $record): void {
+                        $record->numero_operacion = $data['numero_operacion'];
+                        $record->fecha_operacion = $data['fecha_operacion'];
+                        $record->destino_pago_id = $data['destino_pago_id'];
+                        $file = $data['voucher'];
+
+                        // Si viene un UploadedFile (usuario subió uno nuevo)
+                        if ($file instanceof \Illuminate\Http\UploadedFile) {
+                            $fileName = sprintf(
+                                'pago_%s_%s.%s',
+                                $record->id,
+                                now()->format('YmdHis'),
+                                $file->getClientOriginalExtension()
+                            );
+                            $filePath = $file->storeAs('pagos/vouchers', $fileName, 'public');
+                            $record->voucher_path = $filePath;
+                        }
+                        // Si viene una cadena, es la ruta existente y la dejamos tal cual
+                        elseif (is_string($file) && $file !== '') {
+                            $record->voucher_path = $file;
+                        }
+                        $record->save();
+                    })
+                    ->modalHeading('Actualizar información del pago'),
                 Tables\Actions\Action::make('printVoucher')
                     ->icon('heroicon-o-printer')
                     ->hiddenLabel(true)
