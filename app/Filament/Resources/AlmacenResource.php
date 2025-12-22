@@ -24,7 +24,7 @@ class AlmacenResource extends Resource
 
     protected static ?string $navigationGroup = 'Configuraciones';
 
-    protected static ?int $navigationSort = 5;
+    protected static ?int $navigationSort = 7;
 
     protected static ?string $navigationLabel = 'Almacenes';
 

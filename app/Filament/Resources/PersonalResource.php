@@ -28,7 +28,7 @@ class PersonalResource extends Resource
     protected static ?string $model = Personal::class;
     protected static ?string $navigationIcon = 'heroicon-o-identification';
     protected static ?string $navigationGroup = 'Configuraciones';
-    protected static ?int $navigationSort = 2;
+    protected static ?int $navigationSort = 3;
     protected static ?string $navigationLabel = 'Personal';
     protected static ?string $slug = 'personal';
 

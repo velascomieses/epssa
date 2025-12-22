@@ -405,7 +405,7 @@ class PagoResource extends Resource
                 Tables\Actions\Action::make('printVoucher')
                     ->icon('heroicon-o-printer')
                     ->hiddenLabel(true)
-                    ->tooltip('Imprimir Voucher')
+                    ->tooltip('Imprimir voucher')
                     ->url(fn (Pago $record): string => route('pagos.voucher', ['id' => $record->id]))
                     ->openUrlInNewTab()
                     ->color('success'),

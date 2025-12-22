@@ -24,7 +24,7 @@ class CategoriaResource extends Resource
 
     protected static ?string $navigationGroup = 'Configuraciones';
 
-    protected static ?int $navigationSort = 4;
+    protected static ?int $navigationSort = 6;
 
     public static function form(Form $form): Form
     {
