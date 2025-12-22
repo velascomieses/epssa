@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('users', function (Blueprint $table) {
             $table->integer('personal_id')->nullable();
-            $table->foreign('personal_id')->references('id')->on('personal');
+            $table->foreign('personal_id')->references('id')->on('personal')->restrictOnDelete();
         });
     }
 

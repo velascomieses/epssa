@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::table('personal', function (Blueprint $table) {
             $table->integer('tipo_documento_identidad_id')->nullable();
-            $table->foreign('tipo_documento_identidad_id')->references('id')->on('tipo_documento_identidad');
+            $table->foreign('tipo_documento_identidad_id')->references('id')->on('tipo_documento_identidad')->restrictOnDelete();
             $table->string('numero_documento', 45)->nullable();
         });
     }
