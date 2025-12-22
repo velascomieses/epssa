@@ -6,7 +6,8 @@ use App\Http\Controllers\Plataforma\ContratoController;
 use App\Http\Controllers\Plataforma\ProductoController;
 
 Route::get('/', function () {
-    return view('welcome');
+    // redirect to admin dashboard /admin
+    return redirect('/admin');
 });
 Route::prefix('contratos')->middleware(['auth'])->group(function () {
     Route::get('/{id}/cronograma', [ContratoController::class, 'verCronograma'])->name('contratos.rpt.cronograma');

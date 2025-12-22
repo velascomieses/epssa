@@ -54,9 +54,7 @@ class RiskPortfolio extends BaseWidget
                     ->tooltip('Atrasos de más de 120 días')
                     ->color('danger'),
                 Tables\Actions\Action::make('fecha_evaluacion')
-                    ->label(function () {
-                        return Carbon::parse(CarteraRiesgo::first()->fecha_evaluacion)->format('d/m/Y');
-                    })
+                    ->label(fn () => Carbon::parse(CarteraRiesgo::first()?->fecha_evaluacion ?? now())->format('d/m/Y'))
                     ->badge()
                     ->color('info'),
                 ExportAction::make()

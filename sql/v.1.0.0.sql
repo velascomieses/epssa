@@ -99,11 +99,13 @@ SELECT cronograma.cuota,
        cronograma.saldo - COALESCE(a.capital, 0.00)  AS 'saldo',
        cronograma.capital - COALESCE(a.capital, 0.00)  AS 'capital',
        ROUND(GREATEST((POW((1+contrato.tea/100), LEAST(DATEDIFF(cronograma.fecha_vencimiento, cronograma.fecha_inicio),DATEDIFF( fecha, cronograma.fecha_inicio) )/360)-1)*(cronograma.saldo - COALESCE(a.capital,0.00))-COALESCE(a.interes,0.00),0.00), 2) AS 'interes',
-       ROUND(GREATEST((POW((1+contrato.tea/100), GREATEST(DATEDIFF(fecha, cronograma.fecha_vencimiento),0)/360)-1)*(cronograma.capital - COALESCE(a.capital, 0.00))-COALESCE(a.mora, 0.00), 0.00), 2) AS 'mora',
+       -- ROUND(GREATEST((POW((1+contrato.tea/100), GREATEST(DATEDIFF(fecha, cronograma.fecha_vencimiento),0)/360)-1)*(cronograma.capital - COALESCE(a.capital, 0.00))-COALESCE(a.mora, 0.00), 0.00), 2) AS 'mora',
+       ROUND(GREATEST((POW((1+contrato.tea/100), GREATEST(DATEDIFF(fecha, cronograma.fecha_vencimiento),0)/360)-1)*(cronograma.capital - COALESCE(a.capital, 0.00)), 0.00), 2) AS 'mora',
 	   (
 			( cronograma.capital - COALESCE(a.capital,0.00) ) +
 			( ROUND(GREATEST((POW((1+contrato.tea/100),LEAST(DATEDIFF(cronograma.fecha_vencimiento, cronograma.fecha_inicio), DATEDIFF( fecha, cronograma.fecha_inicio) )/360)-1)*(cronograma.saldo - COALESCE(a.capital, 0.00))-COALESCE(a.interes, 0.00), 0.00), 2) ) +
-			( ROUND(GREATEST((POW((1+contrato.tea/100),GREATEST(DATEDIFF(fecha,cronograma.fecha_vencimiento),0)/360)-1)*(cronograma.capital - COALESCE(a.capital, 0.00))-COALESCE(a.mora,0.00), 0.00), 2) )
+			-- ( ROUND(GREATEST((POW((1+contrato.tea/100),GREATEST(DATEDIFF(fecha,cronograma.fecha_vencimiento),0)/360)-1)*(cronograma.capital - COALESCE(a.capital, 0.00))-COALESCE(a.mora,0.00), 0.00), 2)
+            ( ROUND(GREATEST((POW((1+contrato.tea/100),GREATEST(DATEDIFF(fecha,cronograma.fecha_vencimiento),0)/360)-1)*(cronograma.capital - COALESCE(a.capital, 0.00)), 0.00), 2))
 	   ) AS 'importe'
 FROM   cronograma
        INNER JOIN contrato ON contrato.id = cronograma.contrato_id
@@ -194,7 +196,7 @@ BEGIN
            SET dias_interes =  DATEDIFF(fecha_vencimiento, fecha_inicio);
         END IF;
 
-        SET mora  = ROUND(GREATEST((POW((1+tea/100),dias_mora/360)-1)*(capital_cronograma-capital_amortizacion)-mora_amortizacion,0.00), 2);
+        SET mora  = ROUND(GREATEST((POW((1+tea/100),dias_mora/360)-1)*(capital_cronograma-capital_amortizacion),0.00), 2);
         SET interes  = ROUND(GREATEST((POW((1+tea/100),dias_interes/360)-1)*(capital-capital_amortizacion)-interes_amortizacion,0.00), 2);
 
         SET importe_mora  = LEAST(importe, mora);
