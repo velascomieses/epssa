@@ -5,7 +5,7 @@ namespace App\Providers;
 use Filament\Facades\Filament;
 use Filament\Navigation\NavigationGroup;
 use Illuminate\Support\ServiceProvider;
-
+use Illuminate\Validation\Rules\Password;
 class AppServiceProvider extends ServiceProvider
 {
     /**
@@ -21,6 +21,13 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Password::defaults(function () {
+            return Password::min(8)
+                ->letters()->mixedCase()
+                ->numbers()->symbols()
+                ->uncompromised();
+        });
+
         Filament::serving(function () {
             Filament::registerNavigationGroups([
                 NavigationGroup::make()

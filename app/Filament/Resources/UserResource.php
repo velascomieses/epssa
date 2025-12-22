@@ -20,7 +20,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Database\QueryException;
 use Spatie\Permission\Models\Role;
-
+use Illuminate\Validation\Rules\Password;
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
@@ -42,15 +42,8 @@ class UserResource extends Resource
                 TextInput::make('email')->email()->required()->unique(ignoreRecord: true),
                 TextInput::make('password')
                     ->password()
-                    ->rules([
-                        'nullable',
-                        'min:8',
-                        'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/',
-                    ])
-                    ->validationMessages([
-                        'min' => 'La contraseña debe tener al menos 8 caracteres.',
-                        'regex' => 'La contraseña debe contener al menos: una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&).',
-                    ])
+                    ->rule(Password::defaults())
+                    ->revealable()
                     ->dehydrateStateUsing(fn ($state) => $state ? bcrypt($state) : null)
                     ->dehydrated(fn ($state) => filled($state))
                     ->label('Password'),
