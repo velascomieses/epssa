@@ -22,4 +22,9 @@ class Convenio extends Model
     protected $primaryKey = 'id';
     protected $keyType = 'string';
     public $incrementing = false;
+
+    public function persona()
+    {
+        return $this->belongsTo(Persona::class, 'persona_id', 'id');
+    }
 }

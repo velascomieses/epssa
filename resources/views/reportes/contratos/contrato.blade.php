@@ -115,6 +115,11 @@
     </tbody>
 </table>
 &nbsp;<br />
+@if ($contrato->convenios->count() > 0)
+    <h4>CONVENIOS</h4>
+    <p>{{ $contrato->convenios->map(fn($convenio) => $convenio->persona?->full_name)->filter()->implode(', ') }}</p>
+    &nbsp;<br />
+@endif
 <p>
 Siento el interviniente {{ $contrato->personal?->full_name }}, identificado con
     {{ $contrato->personal?->tipoDocumentoIdentidad?->nombre }} N° {{ $contrato->personal?->numero_documento }},
