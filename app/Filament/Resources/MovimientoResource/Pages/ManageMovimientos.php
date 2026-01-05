@@ -180,13 +180,17 @@ class ManageMovimientos extends ManageRecords
                                 ->required()
                                 ->searchable()
                                 ->allowHtml()
-                                ->options(function ($get) {
+                                ->getSearchResultsUsing(function (string $search, $get): array {
                                     $almacenOrigenId = $get('../../almacen_origen_id');
                                     if (!$almacenOrigenId) return [];
 
                                     return ProductoItem::with('producto.productoAtributos.atributo')
                                         ->where('almacen_id', $almacenOrigenId)
                                         ->where('estado', 'DISPONIBLE')
+                                        ->where(function ($query) use ($search) {
+                                            $query->where('numero_serie', 'like', "%{$search}%")
+                                                ->orWhereHas('producto', fn ($q) => $q->where('nombre', 'like', "%{$search}%"));
+                                        })
                                         ->get()
                                         ->mapWithKeys(function ($item) {
                                             $badges = $item->producto->productoAtributos
@@ -203,6 +207,22 @@ class ManageMovimientos extends ManageRecords
                                             return [$item->id => $label];
                                         })
                                         ->toArray();
+                                })
+                                ->getOptionLabelUsing(function ($value): string {
+                                    $item = ProductoItem::with('producto.productoAtributos.atributo')->find($value);
+                                    if (!$item) return '';
+
+                                    $badges = $item->producto->productoAtributos
+                                        ->map(fn ($pa) =>
+                                            "<span class='inline-flex items-center gap-x-1 rounded-md px-1.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-700'>" .
+                                            ($pa->atributo?->nombre ?? 'N/A') . ': ' . $pa->valor .
+                                            "</span>"
+                                        )
+                                        ->implode(' ');
+
+                                    return $item->producto->nombre .
+                                        " <span class='text-gray-500'>[{$item->numero_serie}]</span>" .
+                                        ($badges ? "<br><div class='mt-1'>{$badges}</div>" : '');
                                 })
                                 ->columnSpanFull(),
                         ])
