@@ -40,6 +40,12 @@
         <td>LUGAR SEPUL.</td>
         <td colspan="3" >{{ $contrato->ubigeo?->nombre }}</td>
     </tr>
+    @if ($contrato->cementerio)
+        <tr>
+            <td>CEMENTERIO</td>
+            <td colspan="3" >{{ $contrato->cementerio?->nombre }}</td>
+        </tr>
+    @endif
     <tr>
         <td>DIR. VELAT.</td>
         <td colspan="3" >{{ $contrato->direccion_velatorio }}</td>
@@ -177,17 +183,13 @@ demora, observación o contingencias que pudieran presentarse durante el trámit
                 &nbsp;<br />
                 REPRESENTANTE LEGAL
             </td>
-            <td style="width: 35%; text-align: center;">
+            <td style="width: 39%; text-align: center;">
                 {{ $contrato->personal?->full_name }}<br />
                 INTERVINIENTE
             </td>
-            <td style="width: 35%; text-align: center;">
+            <td style="width: 39%; text-align: center;">
                 {{ $contrato->rolTitular?->full_name }}<br />
                 CONTRATANTE
-            </td>
-            <td style="width: 8%; text-align: center;">
-                &nbsp;<br />
-                AVAL
             </td>
         </tr>
     </tbody>

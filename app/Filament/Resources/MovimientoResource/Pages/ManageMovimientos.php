@@ -110,7 +110,7 @@ class ManageMovimientos extends ManageRecords
                                             )
                                             ->implode(' ');
 
-                                        $label = $producto->nombre . ($badges ? "<br><div class='mt-1'>{$badges}</div>" : '');
+                                        $label = $producto->nombre . ($badges ? " {$badges}" : '');
                                         return [$producto->id => $label];
                                     })
                                     ->toArray()

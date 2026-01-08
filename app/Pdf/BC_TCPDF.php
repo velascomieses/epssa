@@ -4,7 +4,7 @@ namespace App\Pdf;
 use TCPDF;
 class BC_TCPDF extends TCPDF
 {
-    public function __construct($orientation = 'P', $unit = 'mm', $format = array(50, 30), $unicode = true, $encoding = 'UTF-8', $diskcache = false) {
+    public function __construct($orientation = 'L', $unit = 'mm', $format = array(80, 40), $unicode = true, $encoding = 'UTF-8', $diskcache = false) {
         parent::__construct($orientation, $unit, $format, $unicode, $encoding, $diskcache);
         $this->initialize();
     }
@@ -18,8 +18,9 @@ class BC_TCPDF extends TCPDF
         $this->setPrintFooter(false);
 
         // Márgenes mínimos para etiquetas
-        $this->SetMargins(3, 3, 3);
-        $this->SetAutoPageBreak(false);
+        $this->SetMargins(2, 2, 2);
+        $this->setCellPaddings(0, 0, 0, 0);
+        $this->SetAutoPageBreak(false, 2);
     }
     public function printBc($content)
     {
@@ -30,20 +31,20 @@ class BC_TCPDF extends TCPDF
             'fitwidth' => true,
             'cellfitalign' => '',
             'border' => false, // Sin borde para etiquetas
-            'hpadding' => 'auto',
-            'vpadding' => 'auto',
+            'hpadding' => '2',
+            'vpadding' => '2',
             'fgcolor' => array(0, 0, 0),
             'bgcolor' => false,
             'text' => true,
             'font' => 'helvetica',
-            'fontsize' => 9,
+            'fontsize' => 10,
             'stretchtext' => 4
         );
 
         $this->AddPage();
 
         // Altura del código de barras (15-20mm es estándar)
-        $this->write1DBarcode($content, 'C128', '', '', '', 15, 0.4, $style, 'N');
+        $this->write1DBarcode($content, 'C128', 2, '', 76, 20, 0.4, $style, 'N');
     }
 }
 

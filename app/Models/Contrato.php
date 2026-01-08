@@ -28,7 +28,8 @@ class Contrato extends Model
         'fecha_atencion',
         'lugar_fallecimiento',
         'direccion_velatorio',
-        'ubigeo_id'
+        'ubigeo_id',
+        'cementerio_id',
     ];
 
     public function titular()
@@ -110,5 +111,10 @@ class Contrato extends Model
     public function ubigeo()
     {
         return $this->belongsTo(Ubigeo::class, 'ubigeo_id', 'id');
+    }
+
+    public function cementerio()
+    {
+        return $this->belongsTo(Cementerio::class, 'cementerio_id', 'id');
     }
 }

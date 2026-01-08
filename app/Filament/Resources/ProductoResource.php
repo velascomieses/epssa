@@ -36,9 +36,18 @@ class ProductoResource extends Resource
             ->schema([
                 TextInput::make('nombre')
                     ->maxLength(255)
+                    ->required()
                     ->default(null),
                 TextInput::make('precio_unitario')
-                    ->default(null),
+                    ->rules([
+                        'required',
+                        'regex:/^\d+(\.\d{1,2})?$/', // hasta 2 decimales, punto como separador
+                        'gte:0', // mayor o igual a 0
+                    ])
+                    ->validationMessages([
+                        'regex' => 'El valor debe ser numérico con hasta 2 decimales.',
+                        'gte' => 'El valor debe ser mayor o igual a cero.',
+                    ]),
                 Toggle::make('es_serializado')
                     ->label('Serializable')
                     ->default(false),
@@ -74,6 +83,8 @@ class ProductoResource extends Resource
     {
         return $table
             ->columns([
+                TextColumn::make('id')
+                    ->label('ID'),
                 TextColumn::make('nombre')
                     ->searchable(),
                 TextColumn::make('atributos')

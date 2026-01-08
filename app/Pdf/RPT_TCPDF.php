@@ -26,7 +26,7 @@ RPT_TCPDF extends TCPDF
         );
 
         // Configuración de fuentes
-        $this->setHeaderFont([config('tcpdf.font_name_main'), '', config('tcpdf.font_size_main')]);
+        $this->setHeaderFont([config('tcpdf.font_name_main'), '', config('tcpdf.font_size_data')]);
         $this->setFooterFont([config('tcpdf.font_name_data'), '', config('tcpdf.font_size_data')]);
 
         // Configuración de márgenes

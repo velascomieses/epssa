@@ -6,6 +6,7 @@ use App\Filament\Exports\ContractsExporter;
 use App\Filament\Resources\ContratoResource\Pages;
 use App\Filament\Resources\ContratoResource\RelationManagers;
 use App\Models\Categoria;
+use App\Models\Cementerio;
 use App\Models\Contrato;
 use App\Models\ContratoPersona;
 use App\Models\Oficina;
@@ -75,8 +76,7 @@ class ContratoResource extends Resource
                             ->searchable()
                             ->required(),
                         TextInput::make('numero_contrato')
-                            ->label('Número de contrato')
-                            ->required(),
+                            ->label('Número de contrato'),
                         DateTimePicker::make('fecha_atencion')
                             ->label('Fecha de atención')
                             ->required(),
@@ -109,6 +109,8 @@ class ContratoResource extends Resource
                         Select::make('ubigeo_id')
                             ->label('Lugar de sepultura')
                             ->searchable()
+                            ->live()
+                            ->afterStateUpdated(fn (callable $set) => $set('cementerio_id', null))
                             ->getSearchResultsUsing(function (string $search) {
                                 return Ubigeo::query()
                                     ->distritos()
@@ -120,6 +122,18 @@ class ContratoResource extends Resource
                                     ]);
                             })
                             ->getOptionLabelUsing(fn ($value) => Ubigeo::find($value)?->full_name),
+                        Select::make('cementerio_id')
+                            ->label('Cementerio')
+                            ->searchable()
+                            ->preload()
+                            ->options(function (callable $get) {
+                                $ubigeoId = $get('ubigeo_id');
+                                if (!$ubigeoId) return [];
+                                return Cementerio::where('ubigeo_id', $ubigeoId)
+                                    ->pluck('nombre', 'id')
+                                    ->toArray();
+                            })
+                            ->getOptionLabelUsing(fn ($value): ?string => Cementerio::find($value)?->nombre),
 
                     ])
                 ->columns(3),
@@ -347,10 +361,11 @@ class ContratoResource extends Resource
                     ->multiple()
                     ->relationship('contrato.categoria', 'nombre')
                     ->preload(),
-                SelectFilter::make('oficina_id')
+                SelectFilter::make('contrato.oficina_id')
                     ->label('Oficina')
                     ->multiple()
-                    ->relationship('oficina', 'nombre'),
+                    ->relationship('contrato.oficina', 'nombre')
+                    ->preload(),
                 Filter::make('contrato.fecha_contrato')
                     ->form([
                         DatePicker::make('created_from')

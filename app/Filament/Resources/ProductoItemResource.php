@@ -54,7 +54,19 @@ class ProductoItemResource extends Resource
             ->columns([
                 TextColumn::make('producto_id')
                     ->label('Producto')
-                    ->formatStateUsing(fn ($record) => $record->producto?->nombre )
+                    ->formatStateUsing(function ($record) {
+                        $nombre = $record->producto?->nombre ?? 'N/A';
+                        $badges = $record->producto?->productoAtributos
+                            ->map(fn ($pa) =>
+                                "<span class='inline-flex items-center gap-x-1 rounded-md px-1.5 py-0.5 text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300'>" .
+                                ($pa->atributo?->nombre ?? 'N/A') . ': ' . $pa->valor .
+                                "</span>"
+                            )
+                            ->implode(' ') ?? '';
+
+                        return $nombre . ($badges ? " {$badges}" : '');
+                    })
+                    ->html()
                     ->searchable(),
                 TextColumn::make('almacen_id')
                     ->label('Almacén')
