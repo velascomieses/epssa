@@ -68,6 +68,14 @@ class ProductoItemResource extends Resource
                     })
                     ->html()
                     ->searchable(),
+                TextColumn::make('proveedor_id')->label('Proveedor')
+                    ->formatStateUsing(fn ($record) => $record->proveedor->full_name)
+                    ->searchable(query: function (Builder $query, string $search): Builder {
+                        return $query->whereHas('proveedor', function ($query) use ($search) {
+                            $query->whereRaw("CONCAT(nombre, ' ', primer_apellido, ' ', segundo_apellido) LIKE ?", ["%{$search}%"])
+                                ->orWhere('numero_documento', $search);
+                        });
+                    }),
                 TextColumn::make('almacen_id')
                     ->label('Almacén')
                     ->formatStateUsing(fn ($record) => $record->almacen?->nombre )

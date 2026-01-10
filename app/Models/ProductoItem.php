@@ -16,6 +16,7 @@ class ProductoItem extends Model
     protected $keyType = 'string';
 
     protected $fillable = [
+        'proveedor_id',
         'producto_id',
         'numero_serie',
         'almacen_id',
@@ -29,5 +30,10 @@ class ProductoItem extends Model
     public function almacen()
     {
         return $this->belongsTo(Almacen::class, 'almacen_id', 'id');
+    }
+
+    public function proveedor()
+    {
+        return $this->belongsTo(Persona::class, 'proveedor_id', 'id');
     }
 }

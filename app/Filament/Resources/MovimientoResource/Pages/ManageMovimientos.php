@@ -133,6 +133,7 @@ class ManageMovimientos extends ManageRecords
                             $numeroSerie = $this->generateUniqueSerialNumber($item['producto_id']);
 
                             $productoItem = ProductoItem::create([
+                                'provedo_id' => $data['proveedor_id'],
                                 'producto_id' => $item['producto_id'],
                                 'numero_serie' => $numeroSerie,
                                 'almacen_id' => $data['almacen_destino_id'],
