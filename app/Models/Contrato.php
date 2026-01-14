@@ -80,7 +80,7 @@ class Contrato extends Model
     }
     public function beneficiarios()
     {
-        return $this->contratoPersonas()->where('rol_id', 3);
+        return $this->contratoPersonas()->whereIn('rol_id', [3,4]);
     }
     public function rolTitular()
     {
