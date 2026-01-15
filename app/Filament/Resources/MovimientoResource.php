@@ -17,6 +17,7 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -171,7 +172,32 @@ class MovimientoResource extends Resource
                     ->label('Destino'),
             ])
             ->filters([
-                //
+                SelectFilter::make('tipo_movimiento')
+                    ->label('Tipo de movimiento')
+                    ->options([
+                        'ENTRADA' => 'ENTRADA',
+                        'TRASFERENCIA' => 'TRASFERENCIA',
+                    ]),
+                Tables\Filters\Filter::make('numero_serie')
+                    ->form([
+                        Forms\Components\TextInput::make('numero_serie')
+                            ->label('Número de Serie')
+                            ->placeholder('Buscar por número de serie'),
+                    ])
+                    ->indicateUsing(function (array $data): ?string {
+                        if (!$data['numero_serie']) {
+                            return null;
+                        }
+                        return 'Número de Serie: ' . $data['numero_serie'];
+                    })
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['numero_serie'],
+                            fn (Builder $query, $search): Builder => $query->whereHas('items.productoItem', function ($q) use ($search) {
+                                $q->where('numero_serie', 'like', "%{$search}%");
+                            })
+                        );
+                    }),
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),
