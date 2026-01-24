@@ -305,6 +305,14 @@ class ContratoResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query
+                ->with([
+                    'contrato:id,fecha_contrato,tipo_contrato_id,estado_id',
+                    'contrato.tipoContrato:id,nombre',
+                    'contrato.estado:id,nombre',
+                    'persona:id,nombre,primer_apellido,segundo_apellido,numero_documento,direccion'
+                ])
+            )
             ->headerActions([
                 ExportAction::make()
                     ->label('Exportar')
@@ -315,9 +323,9 @@ class ContratoResource extends Resource
             ->columns([
                 TextColumn::make('contrato_id')->searchable()->label('ID'),
                 TextColumn::make('contrato.fecha_contrato')->label('Fecha')->date('d/m/Y'),
-                TextColumn::make('contrato.tipo_contrato_id')->label('Tipo')
-                    ->formatStateUsing(fn ($record) => $record->contrato->tipoContrato?->nombre),
-                TextColumn::make('persona.nombre')
+                TextColumn::make('contrato.tipoContrato.nombre')
+                    ->label('Tipo'),
+                TextColumn::make('persona.full_name')
                     ->label('Nombres y Apellidos')
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->whereHas('persona', function ($query) use ($search) {
@@ -325,12 +333,9 @@ class ContratoResource extends Resource
                                 ->orWhere('numero_documento', "$search")
                                 ->orWhere('direccion', 'like', "%{$search}%");
                         });
-                    })
-                    ->formatStateUsing(function ($record) {
-                        return $record->persona->full_name;
                     }),
-                TextColumn::make('contrato.estado_id')->label('Estado')
-                    ->formatStateUsing(fn ($record) => $record->contrato->estado?->nombre )
+                TextColumn::make('contrato.estado.nombre')
+                    ->label('Estado')
                     ->badge()
                     ->color(fn ($record): string => match ($record->contrato->estado?->id) {
                         1 => 'success', // Vigente

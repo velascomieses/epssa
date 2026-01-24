@@ -272,6 +272,13 @@ class PagoResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn (Builder $query) => $query
+                ->with([
+                    'contrato:id,estado_id',
+                    'contrato.rolTitular:persona.id,nombre,primer_apellido,segundo_apellido,numero_documento',
+                    'oficina:id,nombre'
+                ])
+            )
             ->headerActions([
                 CustomExportAction::make()
                     ->label('Exportar')
@@ -288,16 +295,16 @@ class PagoResource extends Resource
                     ->searchable(),
                 TextColumn::make('fecha_emision')->label('Fecha')->date('d/m/Y'),
                 TextColumn::make('contrato_id')->label('Contrato'),
-                TextColumn::make('contrato.rolTitular.id')->label('Titular')
-                    ->formatStateUsing(fn ($record) => $record->contrato?->rolTitular?->full_name)
+                TextColumn::make('contrato.rolTitular.full_name')
+                    ->label('Titular')
                     ->searchable(query: function (Builder $query, string $search): Builder {
                         return $query->whereHas('contrato.rolTitular', function ($query) use ($search) {
                             $query->whereRaw("CONCAT(nombre, ' ', primer_apellido, ' ', segundo_apellido) LIKE ?", ["%{$search}%"])
                                 ->orWhere('numero_documento', $search);
                         });
                     }),
-                TextColumn::make('oficina_id')->label('Oficina')
-                    ->formatStateUsing(fn ($record) => $record->oficina?->nombre),
+                TextColumn::make('oficina.nombre')
+                    ->label('Oficina'),
                 TextColumn::make('importe')->label('Importe'),
                 IconColumn::make('estado')
                     ->boolean()

@@ -21,30 +21,46 @@ class BC_TCPDF extends TCPDF
         $this->SetMargins(2, 2, 2);
         $this->setCellPaddings(0, 0, 0, 0);
         $this->SetAutoPageBreak(false, 2);
+
+        $this->setImageScale(PDF_IMAGE_SCALE_RATIO);
+        $this->SetJPEGQuality(90);
     }
     public function printBc($content)
     {
         $style = array(
-            'position' => '',
+            'position' => 'C',      // Centrado
             'align' => 'C',
             'stretch' => false,
             'fitwidth' => true,
             'cellfitalign' => '',
-            'border' => false, // Sin borde para etiquetas
-            'hpadding' => '2',
-            'vpadding' => '2',
+            'border' => false,
+            'hpadding' => 'auto',   // Padding automático
+            'vpadding' => 'auto',
             'fgcolor' => array(0, 0, 0),
             'bgcolor' => false,
             'text' => true,
             'font' => 'helvetica',
-            'fontsize' => 10,
-            'stretchtext' => 4
+            'fontsize' => 8,        // Reducido de 10 a 8
+            'stretchtext' => 0      // Sin estiramiento del texto
         );
 
         $this->AddPage();
 
-        // Altura del código de barras (15-20mm es estándar)
-        $this->write1DBarcode($content, 'C128', 2, '', 76, 20, 0.4, $style, 'N');
+        // Ajustes recomendados:
+        // - Ancho de barra: 0.5-0.6 para mejor legibilidad
+        // - Altura: 15-20mm es óptimo
+        // - X: centrado automático con position='C'
+        $this->write1DBarcode(
+            $content,      // Código
+            'C128',        // Tipo
+            '',            // X (auto con position='C')
+            10,            // Y (10mm desde arriba)
+            76,            // Ancho
+            20,            // Alto
+            0.5,           // Ancho de barra (aumentado de 0.4 a 0.5)
+            $style,
+            'N'
+        );
     }
 }
 
