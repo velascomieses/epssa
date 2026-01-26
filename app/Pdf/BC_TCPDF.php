@@ -28,36 +28,34 @@ class BC_TCPDF extends TCPDF
     public function printBc($content)
     {
         $style = array(
-            'position' => 'C',      // Centrado
+            'position' => 'C',
             'align' => 'C',
             'stretch' => false,
-            'fitwidth' => true,
+            'fitwidth' => true, // Esto es vital para que no se pase del ancho asignado
             'cellfitalign' => '',
             'border' => false,
-            'hpadding' => 'auto',   // Padding automático
+            'hpadding' => 2,    // Añadimos padding interno al contenedor del código
             'vpadding' => 'auto',
             'fgcolor' => array(0, 0, 0),
             'bgcolor' => false,
             'text' => true,
             'font' => 'helvetica',
-            'fontsize' => 8,        // Reducido de 10 a 8
-            'stretchtext' => 0      // Sin estiramiento del texto
+            'fontsize' => 7,    // Un poco más pequeño ayuda a no ensanchar el código
+            'stretchtext' => 4
         );
 
         $this->AddPage();
 
-        // Ajustes recomendados:
-        // - Ancho de barra: 0.5-0.6 para mejor legibilidad
-        // - Altura: 15-20mm es óptimo
-        // - X: centrado automático con position='C'
+        // Reducimos el ancho de 76 a 70 para garantizar "Quiet Zones" a los lados
+        // Reducimos el ancho de barra a 0.4 para que el Code128 sea más nítido en térmicas
         $this->write1DBarcode(
-            $content,      // Código
-            'C128',        // Tipo
-            '',            // X (auto con position='C')
-            10,            // Y (10mm desde arriba)
-            76,            // Ancho
-            20,            // Alto
-            0.5,           // Ancho de barra (aumentado de 0.4 a 0.5)
+            $content,
+            'C128',
+            '',    // X centrado
+            5,     // Y un poco más arriba para dar aire
+            70,    // Ancho total reducido (deja 5mm a cada lado)
+            22,    // Aumentamos un poco el alto (facilita el escaneo rápido)
+            0.4,   // Grosor de barra equilibrado
             $style,
             'N'
         );
