@@ -125,7 +125,7 @@ class CronogramaService
     public function eliminar(int $contratoId): void
     {
         $id = $contratoId;
-        Solicitud::findOrFail($id);
+        Contrato::findOrFail($id);
         try {
             DB::beginTransaction();
             DB::table('pago')->where('contrato_id', '=', $id )
