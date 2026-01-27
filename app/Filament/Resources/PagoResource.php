@@ -398,6 +398,9 @@ class PagoResource extends Resource
                             ->maxSize(2048)
                             ->required()
                             ->storeFiles(false)
+                            ->downloadable()
+                            ->openable()
+                            ->previewable()
                             ->default(fn ($record) => $record?->voucher_path),
                     ])
                     ->action(function (array $data, Pago $record): void {
