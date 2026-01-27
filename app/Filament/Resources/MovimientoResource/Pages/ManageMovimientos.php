@@ -130,10 +130,10 @@ class ManageMovimientos extends ManageRecords
                         ]);
 
                         foreach ($data['items'] as $item) {
-                            $numeroSerie = $this->generateUniqueSerialNumber($item['producto_id']);
+                            $numeroSerie = $this->generateUniqueSerialNumber($item['producto_id'], $data['proveedor_id']);
 
                             $productoItem = ProductoItem::create([
-                                'provedo_id' => $data['proveedor_id'],
+                                'proveedor_id' => $data['proveedor_id'],
                                 'producto_id' => $item['producto_id'],
                                 'numero_serie' => $numeroSerie,
                                 'almacen_id' => $data['almacen_destino_id'],
@@ -325,13 +325,26 @@ class ManageMovimientos extends ManageRecords
 //                }),
         ];
     }
-    private function generateUniqueSerialNumber(string $productoId): string
+    private function generateUniqueSerialNumber(string $productoId, ?int $proveedorId = null): string
     {
-        do {
-            $numeroSerie = strtoupper(substr($productoId, 0, 4)) . '-' .
-                date('Ymd') . '-' .
-                strtoupper(substr(uniqid(), -6));
+        // Obtener producto
+        $producto = Producto::find($productoId);
+        $prefijoProduto = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $producto->nombre ?? 'XX'), 0, 2));
 
+        // Obtener proveedor
+        $prefijoProveedor = 'XX';
+        if ($proveedorId) {
+            $proveedor = Persona::find($proveedorId);
+            $nombreProveedor = $proveedor ? ($proveedor->nombre ?? '') : '';
+            $prefijoProveedor = strtoupper(substr(preg_replace('/[^a-zA-Z]/', '', $nombreProveedor), 0, 2));
+        }
+
+        // Asegurar que ambos prefijos tengan 2 caracteres
+        $prefijoProduto = str_pad($prefijoProduto, 2, 'X');
+        $prefijoProveedor = str_pad($prefijoProveedor, 2, 'X');
+
+        do {
+            $numeroSerie = $prefijoProveedor . '-' . $prefijoProduto . '-' . strtoupper(substr(uniqid(), -6));
             $existe = ProductoItem::where('numero_serie', $numeroSerie)->exists();
         } while ($existe);
 
