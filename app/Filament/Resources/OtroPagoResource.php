@@ -76,7 +76,7 @@ class OtroPagoResource extends Resource
                                     });
                             })
                             ->whereHas('contrato', function ($query) {
-                                $query->whereIn('estado_id', [1]);
+                                $query->whereIn('estado_id', [1,2]);
                             })
                             ->limit(50)
                             ->get()
