@@ -95,7 +95,7 @@ class OtroPagoResource extends Resource
                     })
                     ->searchable()
                     ->live()
-                    ->required(),
+                    ->nullable(),
                 Select::make('oficina_id')
                     ->label('Oficina')
                     ->searchable()
@@ -146,10 +146,15 @@ class OtroPagoResource extends Resource
                 TextInput::make('referencia')
                     ->label('Referencia')
                     ->maxLength(255)
-                    ->rules(['nullable', 'string'])
+                    ->rules([
+                        'nullable',
+                        'string',
+                    ])
+                    ->requiredWithout('contrato_id')
                     ->columnSpan('full')
                     ->validationMessages([
                         'max' => 'La referencia no puede exceder los 250 caracteres.',
+                        'required_without' => 'La referencia es obligatoria cuando no se selecciona un contrato.',
                     ]),
             ]);
     }

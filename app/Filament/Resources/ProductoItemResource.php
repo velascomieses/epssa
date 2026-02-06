@@ -4,8 +4,11 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\ProductoItemResource\Pages;
 use App\Filament\Resources\ProductoItemResource\RelationManagers;
+use App\Models\Contrato;
 use App\Models\ProductoItem;
 use Filament\Forms;
+use Filament\Forms\Components\Actions\Action;
+use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -33,18 +36,28 @@ class ProductoItemResource extends Resource
     {
         return $form
             ->schema([
-                Forms\Components\TextInput::make('producto_id')
-                    ->required()
-                    ->numeric(),
-                Forms\Components\TextInput::make('numero_serie')
-                    ->required()
-                    ->maxLength(100),
-                Forms\Components\TextInput::make('almacen_id')
-                    ->numeric()
-                    ->default(null),
-                Forms\Components\TextInput::make('estado')
-                    ->maxLength(50)
-                    ->default(null),
+                TextInput::make('contrato_id')
+                    ->label('Contrato')
+                    ->formatStateUsing(function ($record) {
+                        if (!$record) return '';
+                        $contrato = Contrato::where('numero_serie', $record->numero_serie)->first();
+                        return $contrato?->id ?? '';
+                    })
+                    ->disabled()
+                    ->hintAction(
+                        \Filament\Forms\Components\Actions\Action::make('view_contrato')
+                            ->label('Ver')
+                            ->url(function ($record) {
+                                if (!$record) return null;
+                                $contrato = Contrato::where('numero_serie', $record->numero_serie)->first();
+                                return $contrato ? route('filament.admin.resources.contratos.view', ['record' => $contrato->id]) : null;
+                            })
+                            ->openUrlInNewTab()
+                    )
+                    ->visible(function ($record) {
+                        if (!$record) return false;
+                        return Contrato::where('numero_serie', $record->numero_serie)->exists();
+                    }),
             ]);
     }
 
@@ -99,6 +112,8 @@ class ProductoItemResource extends Resource
                     ->relationship('almacen', 'nombre'),
             ])
             ->actions([
+                Tables\Actions\ViewAction::make()
+                ->modalHeading('Información'),
                 //Tables\Actions\EditAction::make(),
                 //Tables\Actions\DeleteAction::make(),
             ])
