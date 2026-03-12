@@ -64,7 +64,7 @@ class ViewContrato extends ViewRecord
                         !empty($record->numero_serie) &&
                         ProductoItem::where('numero_serie', $record->numero_serie)
                             ->where('estado', 'DISPONIBLE')
-                            ->exists()
+                            ->exists() && Auth::user()
                     )
                     ->action(function (Contrato $record) {
                         $productoItem = ProductoItem::where('numero_serie', $record->numero_serie)
@@ -104,6 +104,54 @@ class ViewContrato extends ViewRecord
                     ->requiresConfirmation()
                     ->modalHeading('Registrar Salida de Inventario')
                     ->modalDescription('Se registrará la salida del producto y se marcará como VENDIDO.'),
+                Actions\Action::make('revertirSalida')
+                    ->label('Revertir Salida')
+                    ->icon('heroicon-o-arrow-uturn-down')
+                    ->color('warning')
+                    ->visible(fn(Contrato $record): bool =>
+                        !empty($record->numero_serie) &&
+                        ProductoItem::where('numero_serie', $record->numero_serie)
+                            ->where('estado', 'VENDIDO')
+                            ->exists() && Auth::user()->hasRole('admin')
+                    )
+                    ->action(function (Contrato $record) {
+                        $productoItem = ProductoItem::where('numero_serie', $record->numero_serie)
+                            ->where('estado', 'VENDIDO')
+                            ->first();
+
+                        if (!$productoItem) {
+                            Notification::make()
+                                ->title('Error')
+                                ->body('Número de serie no encontrado o producto no está marcado como VENDIDO.')
+                                ->danger()
+                                ->send();
+                            return;
+                        }
+
+                        DB::transaction(function () use ($record, $productoItem) {
+                            $movimiento = \App\Models\Movimiento::create([
+                                'tipo_movimiento' => 'ENTRADA',
+                                'fecha_movimiento' => now(),
+                                'almacen_origen_id' => $productoItem->almacen_id,
+                                'user_id' => Auth::id(),
+                            ]);
+
+                            $productoItem->update(['estado' => 'DISPONIBLE']);
+
+                            $movimiento->items()->create([
+                                'producto_id' => $productoItem->producto_id,
+                                'producto_item_id' => $productoItem->id,
+                            ]);
+                        });
+
+                        Notification::make()
+                            ->title('Salida revertida correctamente')
+                            ->success()
+                            ->send();
+                    })
+                    ->requiresConfirmation()
+                    ->modalHeading('Revertir Salida de Inventario')
+                    ->modalDescription('Se registrará la entrada del producto y se marcará como DISPONIBLE nuevamente.'),
                 Actions\Action::make('generarCronograma')
                     ->label('Generar cronograma')
                     ->action(function () {
