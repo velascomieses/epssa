@@ -6,6 +6,8 @@ use App\Filament\Resources\ProductoItemResource\Pages;
 use App\Filament\Resources\ProductoItemResource\RelationManagers;
 use App\Models\Contrato;
 use App\Models\ProductoItem;
+use Filament\Tables\Actions\ExportAction;
+use Filament\Actions\Exports\Enums\ExportFormat;
 use Filament\Forms;
 use Filament\Forms\Components\Actions\Action;
 use Filament\Forms\Components\TextInput;
@@ -17,6 +19,7 @@ use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
+use App\Filament\Exports\InventoryExporter;
 
 class ProductoItemResource extends Resource
 {
@@ -36,34 +39,19 @@ class ProductoItemResource extends Resource
     {
         return $form
             ->schema([
-                TextInput::make('contrato_id')
-                    ->label('Contrato')
-                    ->formatStateUsing(function ($record) {
-                        if (!$record) return '';
-                        $contrato = Contrato::where('numero_serie', $record->numero_serie)->first();
-                        return $contrato?->id ?? '';
-                    })
-                    ->disabled()
-                    ->hintAction(
-                        \Filament\Forms\Components\Actions\Action::make('view_contrato')
-                            ->label('Ver')
-                            ->url(function ($record) {
-                                if (!$record) return null;
-                                $contrato = Contrato::where('numero_serie', $record->numero_serie)->first();
-                                return $contrato ? route('filament.admin.resources.contratos.view', ['record' => $contrato->id]) : null;
-                            })
-                            ->openUrlInNewTab()
-                    )
-                    ->visible(function ($record) {
-                        if (!$record) return false;
-                        return Contrato::where('numero_serie', $record->numero_serie)->exists();
-                    }),
             ]);
     }
 
     public static function table(Table $table): Table
     {
         return $table
+            ->headerActions([
+                ExportAction::make()
+                ->label('Exportar')
+                ->exporter(InventoryExporter::class)
+                ->icon('heroicon-o-arrow-down-tray')
+                ->formats([ExportFormat::Xlsx])
+            ])
             ->columns([
                 TextColumn::make('producto_id')
                     ->label('Producto')
@@ -112,8 +100,6 @@ class ProductoItemResource extends Resource
                     ->relationship('almacen', 'nombre'),
             ])
             ->actions([
-                Tables\Actions\ViewAction::make()
-                ->modalHeading('Información'),
                 //Tables\Actions\EditAction::make(),
                 //Tables\Actions\DeleteAction::make(),
             ])

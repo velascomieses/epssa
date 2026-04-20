@@ -307,10 +307,15 @@ class ContratoResource extends Resource
         return $table
             ->modifyQueryUsing(fn (Builder $query) => $query
                 ->with([
-                    'contrato:id,fecha_contrato,tipo_contrato_id,estado_id',
+                    'contrato:id,fecha_contrato,tipo_contrato_id,estado_id,fecha_atencion,total,inicial,descuento,numero_serie,lugar_fallecimiento,ubigeo_id,cementerio_id,personal_id',
+                    'persona:id,nombre,primer_apellido,segundo_apellido,numero_documento,telefono,direccion',
+                    'contrato.personal:id,nombre,primer_apellido,segundo_apellido',
                     'contrato.tipoContrato:id,nombre',
                     'contrato.estado:id,nombre',
-                    'persona:id,nombre,primer_apellido,segundo_apellido,numero_documento,direccion'
+                    'contrato.ubigeo:id,nombre',
+                    'contrato.cementerio:id,nombre',
+                    'contrato.beneficiarios.persona:id,nombre,primer_apellido,segundo_apellido',
+                    'contrato.convenios.persona:id,nombre,primer_apellido,segundo_apellido',
                 ])
             )
             ->headerActions([
@@ -318,6 +323,8 @@ class ContratoResource extends Resource
                     ->label('Exportar')
                     ->icon('heroicon-o-arrow-down-tray')
                     ->exporter(ContractsExporter::class)
+                    ->columnMapping(false)
+                    ->modalHeading("Exportar contratos")
                     ->formats([ExportFormat::Xlsx])
             ])
             ->columns([
@@ -334,6 +341,7 @@ class ContratoResource extends Resource
                                 ->orWhere('direccion', 'like', "%{$search}%");
                         });
                     }),
+                TextColumn::make('contrato.total')->label('Total'),
                 TextColumn::make('contrato.estado.nombre')
                     ->label('Estado')
                     ->badge()
@@ -371,6 +379,22 @@ class ContratoResource extends Resource
                     ->multiple()
                     ->relationship('contrato.oficina', 'nombre')
                     ->preload(),
+                Filter::make('contrato.numero_serie')
+                    ->form([
+                        TextInput::make('numero_serie')
+                            ->label('Número de serie de ataúd')
+                            ->placeholder('Buscar por número de serie')
+                    ])
+                    ->indicateUsing(fn (array $data): array =>
+                        isset($data['numero_serie']) && $data['numero_serie']
+                            ? ["Número de serie: {$data['numero_serie']}"]
+                            : []
+                    )
+                    ->query(fn (Builder $query, array $data): Builder =>
+                        isset($data['numero_serie']) && $data['numero_serie']
+                            ? $query->whereHas('contrato', fn ($q) => $q->where('numero_serie', 'like', "%{$data['numero_serie']}%"))
+                            : $query
+                    ),
                 Filter::make('contrato.fecha_contrato')
                     ->form([
                         DatePicker::make('created_from')
