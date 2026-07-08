@@ -30,6 +30,7 @@ class Contrato extends Model
         'direccion_velatorio',
         'ubigeo_id',
         'cementerio_id',
+        'user_audit_id'
     ];
 
     public function titular()

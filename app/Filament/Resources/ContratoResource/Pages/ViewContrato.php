@@ -7,6 +7,7 @@ use App\Models\Contrato;
 use App\Models\ContratoNota;
 use App\Models\ProductoItem;
 use App\Services\CronogramaService;
+use App\Services\ContratoService;
 use Awcodes\TableRepeater\Components\TableRepeater;
 use Awcodes\TableRepeater\Header;
 use Filament\Actions;
@@ -56,6 +57,26 @@ class ViewContrato extends ViewRecord
             ->button(),
             Actions\ActionGroup::make([
                 Actions\EditAction::make(),
+                Actions\Action::make('anular')
+                    ->label('Anular contrato')
+                    ->action(function () {
+                        try {
+                            app(ContratoService::class)->anular($this->record->id);
+                            Notification::make()
+                                ->title('El contrato ha sido anulado')
+                                ->success()
+                                ->send();
+                        } catch (\Exception $e) {
+                            Notification::make()
+                                ->title('Error al anular el contrato')
+                                ->body($e->getMessage())
+                                ->danger()
+                                ->send();
+                        }
+                    })
+                    ->icon('heroicon-o-x-mark')
+                    ->requiresConfirmation()
+                    ->visible(fn(Contrato $record): bool => $record->estado_id == null),
                 Actions\Action::make('registrarSalida')
                     ->label('Registrar Salida')
                     ->icon('heroicon-o-arrow-up-tray')

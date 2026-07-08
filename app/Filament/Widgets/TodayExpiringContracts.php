@@ -29,7 +29,8 @@ class TodayExpiringContracts extends BaseWidget
                         return Carbon::now()->format('d/m/Y');
                     })
                     ->badge()
-                    ->color('info'),
+                    ->color('info')
+                    ->extraAttributes(['style' => 'pointer-events: none; cursor: default']),
             ])
             ->query(
                 Contrato::query()

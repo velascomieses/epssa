@@ -32,31 +32,35 @@ class RiskPortfolio extends BaseWidget
                     ->label('Normal (max. 8 días)')
                     ->badge()
                     ->tooltip('Atraso máximo de 8 días calendarios')
-                    ->color('success'),
+                    ->color('success')
+                    ->extraAttributes(['style' => 'pointer-events: none; cursor: default']),
                 Tables\Actions\Action::make('cpp')
                     ->label('CPP (9-30 días)')
                     ->badge()
                     ->tooltip('Con problemas potenciales. Atrasos entre 9 a 30 días')
-                    ->extraAttributes(['style' => 'background-color: rgba(131, 196, 28, 0.7); color: #000000']),
+                    ->extraAttributes(['style' => 'background-color: rgba(131, 196, 28, 0.7); color: #000000; pointer-events: none; cursor: default']),
                 Tables\Actions\Action::make('deficiente')
                     ->label('Deficiente (31-60 días)')
                     ->badge()
                     ->tooltip('Atrasos entre 31 a 60 días')
-                    ->color('warning'),
+                    ->color('warning')
+                    ->extraAttributes(['style' => 'pointer-events: none; cursor: default']),
                 Tables\Actions\Action::make('dudoso')
                     ->label('Dudoso (61-120 días)')
                     ->badge()
                     ->tooltip('Atrasos entre 61 a 120 días')
-                    ->extraAttributes(['style' => 'background-color: rgba(237, 106, 17, 0.7); color: #000000']),
+                    ->extraAttributes(['style' => 'background-color: rgba(237, 106, 17, 0.7); color: #000000; pointer-events: none; cursor: default']),
                 Tables\Actions\Action::make('perdida')
                     ->label('Pérdida (>120 días)')
                     ->badge()
                     ->tooltip('Atrasos de más de 120 días')
-                    ->color('danger'),
+                    ->color('danger')
+                    ->extraAttributes(['style' => 'pointer-events: none; cursor: default']),
                 Tables\Actions\Action::make('fecha_evaluacion')
                     ->label(fn () => Carbon::parse(CarteraRiesgo::first()?->fecha_evaluacion ?? now())->format('d/m/Y'))
                     ->badge()
-                    ->color('info'),
+                    ->color('info')
+                    ->extraAttributes(['style' => 'pointer-events: none; cursor: default']),
                 ExportAction::make()
                     ->label('Exportar')
                     ->icon('heroicon-o-arrow-down-tray')
