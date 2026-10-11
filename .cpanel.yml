@@ -8,10 +8,10 @@ deployment:
     - cd /home/paraiso/repositories/epssa
 
     # Instalar dependencias con Composer (sin las dev y con prefer-dist)
-    - /opt/cpanel/composer/bin/composer install --no-dev --prefer-dist --no-interaction
+    - php /home/paraiso/composer.phar install --no-dev --prefer-dist --no-interaction
 
     # Regenerar el autoload de Composer
-    - /opt/cpanel/composer/bin/composer dump-autoload
+    - php /home/paraiso/composer.phar dump-autoload
 
     # Limpiar APP_PATH excepto storage y .env
     - find $APP_PATH -mindepth 1 -maxdepth 1 ! -name 'storage' ! -name '.env' -exec rm -rf {} +
@@ -23,6 +23,7 @@ deployment:
     # Crear un enlace simbólico para apuntar la carpeta intranet.funerariamello.com a la carpeta public de Laravel
     - rm -rf $DEPLOY_PATH # Borrar cualquier archivo/carpeta actual en intranet.funerariamello.com
     - ln -s $APP_PATH/public $DEPLOY_PATH
+    - ln -sfn $APP_PATH/storage/app/public $APP_PATH/public/storage
     - chmod -R 775 $APP_PATH/storage
     - chmod -R 775 $APP_PATH/bootstrap/cache
 
